@@ -1,0 +1,18 @@
+The project structure looks great. Now, I need to configure the environment and verify the output format before we start the long scraping process.
+
+Please perform the following two tasks:
+
+### Task 1: Create a `SETUP_GUIDE.md`
+Generate a detailed markdown file in the root directory that explains step-by-step how to configure the external services. Please specifically cover:
+1.  **Google Cloud Console:** Which specific APIs I need to enable (confirming YouTube Data API v3 and Google Generative AI API).
+2.  **Credentials:** How to create the OAuth 2.0 Client ID, download the `client_secret.json`, and where to place it in the project folder.
+3.  **Firebase:** Instructions on enabling Firestore in the Firebase Console (Native mode) and how to generate the Service Account Key (JSON) for the `firebase-admin` SDK if needed, or how to use `gcloud auth application-default login` if we are running locally.
+4.  **Environment Variables:** A breakdown of every variable needed in the `.env` file and what values they should have.
+
+### Task 2: Create a `seed_dummy_data.py` Script
+I want to see what the final "Research Table" looks like on a web page immediately. Please write a script called `scripts/seed_dummy_data.py` that:
+1.  Connects to Firestore.
+2.  Inserts 5-10 "fake" validated records representing Steve Gadd clips (e.g., varying dates from 1970s to 2000s, some "Live", some "Studio", mixed artists).
+3.  Prints a success message telling me to run `src/publishing/site_generator.py` to view the result.
+
+This will allow me to test the full "Database -> HTML" pipeline right now without waiting for the scraper.

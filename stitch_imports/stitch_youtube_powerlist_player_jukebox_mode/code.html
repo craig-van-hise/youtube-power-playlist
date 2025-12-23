@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>YouTube Powerlist Player</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922", // Matches the dark bg in provided snippets
+                        "surface-dark": "#111a22",
+                        "surface-highlight": "#233648",
+                        "text-secondary": "#92adc9"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for better aesthetics in dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111a22; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #233648; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #324d67; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white overflow-hidden h-screen flex flex-col">
+<!-- Top Navigation -->
+<header class="flex shrink-0 items-center justify-between whitespace-nowrap border-b border-solid border-[#233648] bg-[#111a22] px-6 py-3 z-30">
+<div class="flex items-center gap-8">
+<!-- Logo -->
+<div class="flex items-center gap-4 text-white">
+<div class="size-8 flex items-center justify-center rounded bg-primary text-white">
+<span class="material-symbols-outlined text-xl">play_circle</span>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] hidden md:block">YouTube Powerlist</h2>
+</div>
+<!-- Mode Switcher (Desktop) -->
+<div class="hidden md:flex h-10 items-center justify-center rounded-lg bg-[#233648] p-1">
+<label class="flex cursor-pointer h-full items-center justify-center overflow-hidden rounded px-4 bg-primary text-white shadow-sm transition-all">
+<span class="material-symbols-outlined mr-2 text-[18px]">format_list_bulleted</span>
+<span class="truncate text-sm font-medium">Jukebox Mode</span>
+<input checked="" class="invisible w-0" name="view-mode" type="radio" value="Jukebox Mode"/>
+</label>
+<label class="flex cursor-pointer h-full items-center justify-center overflow-hidden rounded px-4 text-[#92adc9] hover:bg-white/5 transition-all">
+<span class="material-symbols-outlined mr-2 text-[18px]">school</span>
+<span class="truncate text-sm font-medium">Study Mode</span>
+<input class="invisible w-0" name="view-mode" type="radio" value="Study Mode"/>
+</label>
+</div>
+</div>
+<!-- Search & Profile -->
+<div class="flex items-center gap-4 flex-1 justify-end max-w-2xl ml-4">
+<label class="flex flex-col min-w-40 !h-10 max-w-[400px] w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-[#233648] focus-within:ring-2 focus-within:ring-primary/50 transition-all">
+<div class="text-[#92adc9] flex border-none items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-0 focus:ring-0 border-none bg-transparent focus:border-none h-full placeholder:text-[#92adc9] px-4 rounded-l-none border-l-0 pl-2 text-sm font-normal leading-normal" placeholder="Search videos, tags, channels..." value=""/>
+</div>
+</label>
+<button class="bg-[#233648] hover:bg-[#324d67] text-white rounded-full p-2 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-[#233648] cursor-pointer" data-alt="User profile avatar showing a stylized smiling face" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCkeCJusvUBviUrG6MkVfenM4npzfrq6WQMWCrcLmih-rSNbn2KAhfagiy4ddPgVQZ0oOFbRceAVL5_E8llXRhhLuB0TlWpHKi9ZIO3cdoS2uCj7OuMglyG1_vlh43CV6Zv0DCOjySt0FPescc_zU0keANembEZkvPVoQwHShjIiHNbpt-5mXBG3wIKmlLI3nY-J3BweppnJ1xXU8RGABb-Tbftkp7GeVXSPvRTbgQVSEDUUogQUeBVEv0BvSsP_VK4c66uEkKg8t_0");'></div>
+</div>
+</header>
+<!-- Mobile Mode Switcher (Visible only on small screens) -->
+<div class="md:hidden px-4 py-2 bg-[#111a22] border-b border-[#233648]">
+<div class="flex h-10 w-full items-center justify-center rounded-lg bg-[#233648] p-1">
+<label class="flex flex-1 cursor-pointer h-full items-center justify-center overflow-hidden rounded bg-primary text-white shadow-sm">
+<span class="truncate text-xs font-bold">Jukebox</span>
+<input checked="" class="invisible w-0" name="view-mode-mobile" type="radio"/>
+</label>
+<label class="flex flex-1 cursor-pointer h-full items-center justify-center overflow-hidden rounded text-[#92adc9]">
+<span class="truncate text-xs font-bold">Study</span>
+<input class="invisible w-0" name="view-mode-mobile" type="radio"/>
+</label>
+</div>
+</div>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto bg-[#101922] p-4 md:px-8 md:py-6">
+<div class="mx-auto max-w-[1400px]">
+<!-- Toolbar / Filters -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+<div>
+<h1 class="text-xl font-bold text-white">All Videos</h1>
+<p class="text-sm text-text-secondary">Manage your playback queue and organized lists.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 h-9 px-4 rounded-lg bg-[#233648] hover:bg-[#324d67] text-sm font-medium text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        Filter
+                    </button>
+<button class="flex items-center gap-2 h-9 px-4 rounded-lg bg-primary hover:bg-blue-600 text-sm font-medium text-white transition-colors shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        Add Video
+                    </button>
+</div>
+</div>
+<!-- Data Table -->
+<div class="overflow-hidden rounded-xl border border-[#233648] bg-[#111a22] shadow-xl">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#192633] border-b border-[#233648]">
+<th class="px-4 py-3 w-16 text-center text-text-secondary">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+</th>
+<th class="px-4 py-3 text-text-secondary text-xs font-semibold uppercase tracking-wider w-16">Video</th>
+<th class="px-4 py-3 text-text-secondary text-xs font-semibold uppercase tracking-wider">Title</th>
+<th class="px-4 py-3 text-text-secondary text-xs font-semibold uppercase tracking-wider">Channel</th>
+<th class="px-4 py-3 text-text-secondary text-xs font-semibold uppercase tracking-wider">Tags</th>
+<th class="px-4 py-3 text-text-secondary text-xs font-semibold uppercase tracking-wider">Status</th>
+<th class="px-4 py-3 text-text-secondary text-xs font-semibold uppercase tracking-wider text-right">Duration</th>
+<th class="px-4 py-3 w-10"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#233648]">
+<!-- Row 1: Active -->
+<tr class="group hover:bg-[#1c2936] transition-colors cursor-pointer bg-[#233648]/30">
+<td class="px-4 py-3 text-center">
+<button class="size-8 rounded-full bg-primary text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined text-[20px]">pause</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md w-12 h-12 ring-1 ring-[#233648]" data-alt="Lofi hip hop girl studying illustration thumbnail" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBiyQrwOgk3pyMbbhNt0B4R-3o7cA7uH6PLIZoOB_slSivnLLJeLNj1QoZbp5I2Jrwppdgk2yIjjCKzhbZxJbJAW0VsIeKQ3frThv8ez6pIHMB-rdABuNUtUqzHWW3XQOdsR4tEC-MR-u1L-Q-7eFBrycrUnBKyMh81iXkxiZ9kUubi7dwribyard3bDGoPhXwNLFJu_DC-jXxOpm8PwHg4KWZbL62kOBWIUK5roBXJxK-6KE_mm8uLjPl7Yk1FK3qN3S5oeumkFekh");'></div>
+</td>
+<td class="px-4 py-3">
+<div class="text-white font-medium text-sm">Lofi Hip Hop Radio</div>
+<div class="text-primary text-xs mt-0.5 md:hidden">Lofi Girl</div>
+</td>
+<td class="px-4 py-3 text-text-secondary text-sm">Lofi Girl</td>
+<td class="px-4 py-3">
+<div class="flex flex-wrap gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/20 text-blue-200 border border-primary/30">Music</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#233648] text-text-secondary border border-[#324d67]">Focus</span>
+</div>
+</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
+<span class="size-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                                        Playing
+                                    </span>
+</td>
+<td class="px-4 py-3 text-text-secondary text-sm text-right font-mono">LIVE</td>
+<td class="px-4 py-3 text-right">
+<button class="text-text-secondary hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-[#1c2936] transition-colors cursor-pointer">
+<td class="px-4 py-3 text-center">
+<button class="size-8 rounded-full bg-[#233648] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-black">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md w-12 h-12 ring-1 ring-[#233648]" data-alt="Abstract colorful gradient thumbnail for UI course" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDs95bI_W_2bmhAvKipy1m7ZuPjC1O79aUJg592DelXvIpA0zCfaPfWKTd4ONfRqp-IVS1A0V54BxBaJ_rLCt8j9pGDnlucXDE9GnEHvV36zWwsL7L0DWIW9n5auI0a2BTzZDz4N5cWYZrF40Fvt5GuILvWUq7Kmxnq5t8McxGO4NqgtS9EW1TPTmSXmG_lVqfQZMc8m_NXfqsbLCqoqHnD-Z8mbuiKSkHPy3P2xnAKmQoZs5ehwoNeX7wgVKPraV_y-6wLBXekfDT5");'></div>
+</td>
+<td class="px-4 py-3">
+<div class="text-white font-medium text-sm">UI Design Crash Course</div>
+</td>
+<td class="px-4 py-3 text-text-secondary text-sm">DesignCourse</td>
+<td class="px-4 py-3">
+<div class="flex flex-wrap gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#233648] text-text-secondary border border-[#324d67]">Education</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#233648] text-text-secondary border border-[#324d67]">UI</span>
+</div>
+</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                        To Watch
+                                    </span>
+</td>
+<td class="px-4 py-3 text-text-secondary text-sm text-right font-mono">24:15</td>
+<td class="px-4 py-3 text-right">
+<button class="text-text-secondary hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-[#1c2936] transition-colors cursor-pointer">
+<td class="px-4 py-3 text-center">
+<button class="size-8 rounded-full bg-[#233648] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-black">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md w-12 h-12 ring-1 ring-[#233648]" data-alt="Historical map thumbnail image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDq3fOtCyIc1cjaF8-0vscoCuP3qDfoCfMo-GY_h3u6fg3SNwZtGZVqXQ8ULdlX7Rx3mewhBbFF9e2hTwjhioU7MbFVIj7OUyw7elKUqrvpPP9fdgOTNN3YlX6ftPN7cUita4SyAt8VNWICSiyD_vRu2LIYMlGInd7LvNWeKLTVCWUnU41mnxZ8PfAuPksvtoOEg_QLtfuh6YNrsO_ur_YFEv3FrpmH-4m1ZOTA7P47uGfUstd46n15wcSaWkLkVpGVST7TLxFd3L4e");'></div>
+</td>
+<td class="px-4 py-3">
+<div class="text-white font-medium text-sm">History of Rome</div>
+</td>
+<td class="px-4 py-3 text-text-secondary text-sm">HistoryChannel</td>
+<td class="px-4 py-3">
+<div class="flex flex-wrap gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#233648] text-text-secondary border border-[#324d67]">Documentary</span>
+</div>
+</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#233648] text-gray-400 border border-gray-600/30">
+                                        Watched
+                                    </span>
+</td>
+<td class="px-4 py-3 text-text-secondary text-sm text-right font-mono">45:30</td>
+<td class="px-4 py-3 text-right">
+<button class="text-text-secondary hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-[#1c2936] transition-colors cursor-pointer">
+<td class="px-4 py-3 text-center">
+<button class="size-8 rounded-full bg-[#233648] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-black">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md w-12 h-12 ring-1 ring-[#233648]" data-alt="Geometric shapes thumbnail" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA6Zss4gFdajOy41QtcvM091xA3nmn52GOuAWvVcCp7r3lYHa6gZXR5lTEpMJT1sLKqap_9__6iRWVrYhAK2XvEhT39ZmHDwY4AM9d8-6i47QD3tRRV1glKwezxeFJKCgQgRFYaBoD9nb3plO09ZDoBkKFJE5TASrVjXifTX_Z8OgehbckZASfQaQojCP3wiQghA6Acf2bnZKIjQ2amtX9GjK6XI3-HG86vloEsdI8sKGtcpHVI_NW1sv6DiugmjKDfB3FqGnWkKGSt");'></div>
+</td>
+<td class="px-4 py-3">
+<div class="text-white font-medium text-sm">Advanced CSS Grid</div>
+</td>
+<td class="px-4 py-3 text-text-secondary text-sm">Kevin Powell</td>
+<td class="px-4 py-3">
+<div class="flex flex-wrap gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#233648] text-text-secondary border border-[#324d67]">Dev</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#233648] text-text-secondary border border-[#324d67]">CSS</span>
+</div>
+</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                        To Watch
+                                    </span>
+</td>
+<td class="px-4 py-3 text-text-secondary text-sm text-right font-mono">18:45</td>
+<td class="px-4 py-3 text-right">
+<button class="text-text-secondary hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="group hover:bg-[#1c2936] transition-colors cursor-pointer">
+<td class="px-4 py-3 text-center">
+<button class="size-8 rounded-full bg-[#233648] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-black">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md w-12 h-12 ring-1 ring-[#233648]" data-alt="Abstract space background thumbnail" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAGwpN4A_hqyDzQ2X6uPGMN_jKXJCgxEq-CR66ou7jC38SZpk4-ySZcU5P8lUva5C5O4nDIFLTvDoLcnGv_cqXdra6EEjiQuXbBU4vYkYqVBXg6q7p9I1X7qwLHfRfqWma1ONZ3PjJXNFWnvLk_0cvM6HcMUPPcvtKvJZbmpzznAuuQhWqwBfxANIJZHxBTpMg5SeP1JNP7knLwygosxjVB3-iRU1iswTrufGkkD0gOxM7DSX0uDlkqLpDSu8IXLX1zIApgvPOVUZXH");'></div>
+</td>
+<td class="px-4 py-3">
+<div class="text-white font-medium text-sm">Deep Focus 50Hz</div>
+</td>
+<td class="px-4 py-3 text-text-secondary text-sm">Binaural Beats</td>
+<td class="px-4 py-3">
+<div class="flex flex-wrap gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/20 text-blue-200 border border-primary/30">Music</span>
+</div>
+</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                        To Watch
+                                    </span>
+</td>
+<td class="px-4 py-3 text-text-secondary text-sm text-right font-mono">3:00:00</td>
+<td class="px-4 py-3 text-right">
+<button class="text-text-secondary hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-between border-t border-[#233648] bg-[#111a22] px-4 py-3">
+<div class="text-xs text-text-secondary hidden sm:block">
+                        Showing <span class="font-medium text-white">1</span> to <span class="font-medium text-white">5</span> of <span class="font-medium text-white">128</span> results
+                    </div>
+<div class="flex flex-1 justify-center sm:justify-end gap-2">
+<button class="flex items-center justify-center rounded-lg border border-[#233648] bg-[#192633] px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-[#233648] hover:text-white disabled:opacity-50">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+<span class="ml-1 hidden sm:inline">Previous</span>
+</button>
+<button class="flex items-center justify-center rounded-lg border border-[#233648] bg-[#192633] px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-[#233648] hover:text-white">
+<span class="mr-1 hidden sm:inline">Next</span>
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Spacer for player -->
+<div class="h-24"></div>
+</div>
+</main>
+<!-- Sticky Footer Player -->
+<footer class="fixed bottom-0 left-0 right-0 z-50 bg-[#111a22]/95 backdrop-blur-md border-t border-[#233648] shadow-[0_-4px_20px_rgba(0,0,0,0.4)]">
+<!-- Progress Bar (Scrubber) -->
+<div class="group/scrubber relative w-full h-1 bg-[#233648] cursor-pointer">
+<div class="absolute h-full w-[35%] bg-primary group-hover/scrubber:bg-blue-400 transition-colors"></div>
+<div class="absolute left-[35%] top-1/2 -translate-y-1/2 size-3 bg-white rounded-full opacity-0 group-hover/scrubber:opacity-100 transition-opacity shadow-sm scale-0 group-hover/scrubber:scale-100"></div>
+</div>
+<div class="flex items-center justify-between px-4 h-20 gap-4">
+<!-- Now Playing Info -->
+<div class="flex items-center gap-3 w-1/4 min-w-[180px]">
+<div class="relative group cursor-pointer">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-12 shrink-0 ring-1 ring-[#233648]" data-alt="Now playing video thumbnail of Lofi Girl" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAyFGcZe4NM9RKct8mzxXoKQaDA4FVKH4B1EnUV5NxLFWhU1nbv71bR1VS3dwRSeB0IMJ1iQpvxtbOUIORDAC8MaGUT39jWu_3hsxshEyRgizzS2F28DmpVhYGPOQYiIGqaxB1pc-xNFJPycQu_W41rPfuuNlYVjBPJ4Hmb16TXpN3XMQqFYWKQ5c5jh2YnhoRVR5GYw5WnGZ8AQlC6z3FGN4yDaMXgvSMuFcOZ6Bhk6eRMpl1jSGfDm_lZHfS-c__HaatD0xJxLCg5");'></div>
+<div class="absolute inset-0 bg-black/40 items-center justify-center hidden group-hover:flex rounded-lg">
+<span class="material-symbols-outlined text-white">open_in_full</span>
+</div>
+</div>
+<div class="overflow-hidden">
+<div class="text-white text-sm font-bold truncate">Lofi Hip Hop Radio</div>
+<div class="text-text-secondary text-xs truncate">Lofi Girl • <span class="text-primary">Playing</span></div>
+</div>
+<button class="text-text-secondary hover:text-primary transition-colors ml-2 hidden lg:block" title="Add to Library">
+<span class="material-symbols-outlined text-[20px]">favorite_border</span>
+</button>
+</div>
+<!-- Playback Controls -->
+<div class="flex flex-col items-center justify-center flex-1 max-w-md">
+<div class="flex items-center gap-6">
+<button class="text-text-secondary hover:text-white transition-colors" title="Shuffle">
+<span class="material-symbols-outlined text-[20px]">shuffle</span>
+</button>
+<button class="text-white hover:text-primary transition-colors" title="Previous">
+<span class="material-symbols-outlined text-[32px]">skip_previous</span>
+</button>
+<button class="flex items-center justify-center size-10 rounded-full bg-primary text-white hover:bg-blue-400 hover:scale-105 transition-all shadow-lg shadow-primary/20" title="Pause">
+<span class="material-symbols-outlined text-[24px] fill-current">pause</span>
+</button>
+<button class="text-white hover:text-primary transition-colors" title="Next">
+<span class="material-symbols-outlined text-[32px]">skip_next</span>
+</button>
+<button class="text-primary transition-colors relative" title="Repeat">
+<span class="material-symbols-outlined text-[20px]">repeat</span>
+<span class="absolute -bottom-1 left-1/2 -translate-x-1/2 size-1 bg-primary rounded-full"></span>
+</button>
+</div>
+<div class="flex items-center gap-2 w-full mt-1 px-4">
+<span class="text-[10px] font-mono text-text-secondary">12:00</span>
+<!-- Mini spacer since scrubber is at top, purely visual balance -->
+<div class="flex-1"></div>
+<span class="text-[10px] font-mono text-text-secondary">LIVE</span>
+</div>
+</div>
+<!-- Volume & Options -->
+<div class="flex items-center justify-end gap-3 w-1/4 min-w-[180px]">
+<!-- Autoplay Toggle -->
+<div class="hidden xl:flex items-center gap-2 bg-[#192633] px-2 py-1 rounded-lg border border-[#233648] mr-2">
+<span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Autoplay</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-7 h-4 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="group relative flex items-center">
+<button class="text-text-secondary hover:text-white transition-colors">
+<span class="material-symbols-outlined">volume_up</span>
+</button>
+<!-- Volume Slider (Visual only) -->
+<div class="w-20 h-1 bg-[#233648] ml-2 rounded-full cursor-pointer hidden md:block">
+<div class="w-3/4 h-full bg-white rounded-full"></div>
+</div>
+</div>
+<div class="h-6 w-px bg-[#233648] mx-1"></div>
+<button class="text-text-secondary hover:text-white transition-colors" title="Queue">
+<span class="material-symbols-outlined">queue_music</span>
+</button>
+<button class="text-text-secondary hover:text-white transition-colors md:hidden" title="More">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</footer>
+</body></html>

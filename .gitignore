@@ -1,0 +1,12 @@
+# Ignore environment variables and secrets
+.env
+service-account-key.json
+config/service-account-key.json
+
+# Ignore Python virtual environment and cache
+.venv/
+__pycache__/
+*.pyc
+
+# Ignore built static site
+public/
