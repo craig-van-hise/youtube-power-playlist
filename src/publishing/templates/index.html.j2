@@ -25,20 +25,96 @@
         
         body { overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         /* Flex Container Safety */
-        #app-container { flex: 1; display: flex; overflow: hidden; transition: all 0.3s ease; width: 100vw; }
+        /* --- LAYOUT & LAYERING --- */
+        #left-panel, #player-panel, #video-stage {
+            position: relative;
+            background-color: #101922 !important; /* Solid background */
+            box-sizing: border-box;
+        }
+
+        #left-panel { z-index: 10; border-right: 1px solid #233648; }
+        #player-panel { z-index: 20; display: flex; flex-direction: column; min-width: 0; }
+
+        /* The Safety Shield (Invisible until dragging) */
+        #iframe-shield {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 9999;
+            display: none; /* Hidden by default */
+        }
+
+        /* --- SPLITTERS --- */
+        #splitter-vertical {
+            width: 12px;
+            background: #0d1218;
+            border-left: 1px solid #233648;
+            border-right: 1px solid #233648;
+            cursor: col-resize;
+            z-index: 50; /* Above everything */
+            flex-shrink: 0;
+        }
+        #splitter-vertical:hover { background: #137fec; }
+
+        #splitter-horizontal {
+            height: 12px;
+            background: #0d1218;
+            border-top: 1px solid #233648;
+            border-bottom: 1px solid #233648;
+            cursor: row-resize;
+            z-index: 50; /* Above everything */
+            width: 100%;
+            display: block !important; /* Force Visibility */
+            flex-shrink: 0;
+        }
+        #splitter-horizontal:hover { background: #137fec; }
+
+        /* Show based on mode */
+        .mode-study #splitter-vertical { display: block; }
+        .mode-jukebox #splitter-horizontal { display: block; }
 
         /* Jukebox Mode */
         .mode-jukebox { flex-direction: column; }
-        .mode-jukebox #left-panel { flex: 1; width: 100% !important; overflow-y: auto; }
-        .mode-jukebox #player-panel { height: 80px; width: 100%; border-top: 1px solid #233648; background: #111a22; flex-direction: row; z-index: 50; }
+        /* FORCE FLEXBOX LAYOUT */
+        #app-container.mode-study {
+            display: flex !important;
+            flex-direction: row !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            overflow: hidden !important;
+        }
+
+        /* SIDEBAR: STRICT LIMITS */
+        .mode-study #left-panel {
+            width: 350px; /* Default start */
+            min-width: 250px !important; /* Minimum safety only */
+            /* max-width removed to allow making video smaller */
+            flex-shrink: 0 !important;
+            border-right: 1px solid #233648;
+            z-index: 10;
+            position: relative;
+            background-color: #101922 !important;
+        }
+
+        /* PLAYER: FILL REMAINING SPACE */
+        .mode-study #player-panel {
+            flex-grow: 1 !important;
+            flex-shrink: 1 !important;
+            min-width: 0 !important; /* CRITICAL FIX for Flexbox overflow */
+            width: auto !important;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* JUKEBOX OVERRIDES */
+        .mode-jukebox #left-panel {
+            width: 100% !important;
+            flex: none !important;
+        }
+
         .mode-jukebox .study-only { display: none !important; }
         .mode-jukebox .jukebox-only { display: flex !important; }
         .mode-jukebox .col-compact-hide { display: table-cell; } /* Show all cols in Jukebox */
 
-        /* Study Mode */
-        .mode-study { flex-direction: row; }
-        .mode-study #left-panel { width: 30%; min-width: 350px; border-right: 1px solid #233648; overflow-y: auto; flex: none; flex-shrink: 0; max-width: 60vw; }
-        .mode-study #player-panel { flex: 1; display: flex; flex-direction: column; background: #101922; overflow-y: auto; min-width: 0; }
         .mode-study .study-only { display: flex !important; }
         .mode-study .jukebox-only { display: none !important; }
         .mode-study .col-compact-hide { display: none; } /* Hide details in Sidebar */
@@ -67,21 +143,85 @@
         th.sort-desc::after { content: ' ▼'; font-size: 0.8em; }
         
         /* Drag and Drop */
-        /* Drag and Drop */
+        tr.opacity-50 {
+            opacity: 0.5;
             background-color: rgba(19, 127, 236, 0.2) !important; 
+        }
+        tr.drag-over {
             border-top: 2px solid #137fec !important; 
         }
 
-        /* Splitters */
-        .splitter { background-color: #233648; z-index: 100; transition: background-color 0.2s; }
-        .splitter:hover { background-color: #137fec; }
+        /* Force Solid Backgrounds to stop bleed-through */
+
         
-        #splitter-vertical { width: 4px; cursor: col-resize; display: none; }
-        #splitter-horizontal { height: 4px; width: 100%; cursor: row-resize; display: none; }
+        /* The "Safety Shield" - Invisible by default */
+        #iframe-shield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999; /* Super high to catch all clicks */
+            display: none; /* Hidden normally */
+        }
+        
+        /* Splitters */
+
 
         /* Show based on mode */
         .mode-study #splitter-vertical { display: block; }
         .mode-jukebox #splitter-horizontal { display: block; }
+
+        /* --- POWER USER GRID --- */
+        #table-toolbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 16px; background: #192633; border-bottom: 1px solid #233648;
+        }
+        .table-container { overflow-x: auto; width: 100%; }
+        
+        /* Grid Borders & Layout */
+        table { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+        th, td { 
+            border-right: 1px solid #233648; 
+            border-bottom: 1px solid #233648; /* Row lines too */
+            padding: 8px 12px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            vertical-align: middle;
+        }
+        th:last-child, td:last-child { border-right: none; }
+        
+        .star-rating { color: #fbbf24; letter-spacing: 2px; }
+        
+        /* Resizable Header Base */
+        .resizable-col { position: relative; }
+        
+        /* Column Resizer Grip */
+        /* Column Resizer Grip */
+        .col-resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            cursor: col-resize;
+            background: transparent;
+            z-index: 10;
+        }
+        .col-resizer:hover { background: #137fec; }
+
+        /* --- FIXED WIDTHS (PRP #20) --- */
+        .col-index { width: 40px; text-align: center; }
+        .col-watched { width: 40px; text-align: center; }
+        .col-thumbnail { width: 120px; }
+        .col-original_date, .col-published_at { width: 110px; font-family: monospace; }
+        .col-rating { width: 100px; }
+        .col-duration { width: 70px; text-align: right; font-family: monospace; }
+        
+        /* Dynamic Columns */
+        .col-title { min-width: 200px; }
+        .col-channel { min-width: 150px; }
     </style>
 </head>
 <body class="bg-bg-dark text-white font-sans">
@@ -108,37 +248,36 @@
                     <span class="material-symbols-rounded text-sm">add</span> Add Video
                 </button>
             </div>
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-surface sticky top-0 z-10 text-xs uppercase text-text-sub font-semibold tracking-wider shadow-sm">
-                    <tr>
-                        <th class="px-4 py-3 w-12 text-center">#</th>
-                        <th class="px-4 py-3 w-12 text-center col-compact-hide">Watched</th>
-                        <!-- Sortable Headers -->
-                        <th onclick="sortPlaylist('title')" class="px-4 py-3 sortable" id="th-title">Title</th>
-                        <th onclick="sortPlaylist('original_date')" class="px-4 py-3 col-compact-hide sortable" id="th-original_date">Original Date</th>
-                        <th onclick="sortPlaylist('published_at')" class="px-4 py-3 col-compact-hide sortable" id="th-published_at">Upload Date</th>
-                        <th onclick="sortPlaylist('channel')" class="px-4 py-3 sortable" id="th-channel">Channel</th>
-                        <th class="px-4 py-3 col-compact-hide">Tags</th>
-                        <th onclick="sortPlaylist('duration')" class="px-4 py-3 w-24 text-right sortable" id="th-duration">Dur.</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody" class="divide-y divide-border/50 text-sm text-text-sub"></tbody>
-            </table>
+            <div id="table-toolbar" class="jukebox-only">
+                <input type="text" id="table-search" placeholder="Search library..." class="bg-bg-dark border border-border rounded px-3 py-1.5 text-sm w-64 focus:border-primary outline-none">
+                <button id="btn-cols" class="text-sm text-text-sub hover:text-white flex items-center gap-1">
+                    <span class="material-symbols-rounded text-base">view_column</span> Columns
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="w-full text-left">
+                    <thead id="tableHead" class="bg-surface sticky top-0 z-10 text-xs uppercase text-text-sub font-semibold tracking-wider shadow-sm">
+                        <!-- Headers generated by JS -->
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-border/50 text-sm text-text-sub"></tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Vertical Splitter (between Left Panel and Player Panel) -->
         <div id="splitter-vertical" class="splitter"></div>
-        <!-- Horizontal Splitter (Sibling approach for Flexbox) -->
-        <div id="splitter-horizontal" class="splitter"></div>
+        <!-- Horizontal Splitter (Moved inside player panel) -->
 
         <div id="player-panel">
 
 
-            <div id="video-stage" class="w-full shrink-0 bg-black relative group" style="display:none;">
-                <div class="aspect-video w-full flex items-center justify-center bg-gray-900 relative">
-                     <div id="yt-player" class="w-full h-full"></div>
-                </div>
+            <div id="video-stage" style="display:none; width: 100%; height: 60%; min-height: 200px; background: black;">
+                 <div id="yt-player" style="width: 100%; height: 100%;"></div>
+                 <div id="iframe-shield"></div>
             </div>
+            
+            <div id="splitter-horizontal" class="splitter"></div>
 
             <div class="study-only p-4 border-b border-border bg-surface flex justify-between items-center">
                 <div>
@@ -201,6 +340,17 @@
         </div>
     </dialog>
 
+    <!-- Column Visibility Modal -->
+    <dialog id="col-modal" class="bg-surface border border-border rounded-xl p-6 shadow-2xl backdrop:bg-black/80 text-white w-64">
+        <h3 class="text-lg font-bold mb-4">Visible Columns</h3>
+        <div id="col-list" class="flex flex-col gap-2 max-h-60 overflow-y-auto mb-4">
+            <!-- Populated by JS -->
+        </div>
+        <div class="flex justify-end">
+             <button onclick="document.getElementById('col-modal').close()" class="px-4 py-2 bg-primary rounded text-sm hover:bg-blue-600">Done</button>
+        </div>
+    </dialog>
+
     <script>
         const INJECTED_DATA = {{ videos_json }};
         // Data Structure Update: Ensure new fields exist
@@ -211,20 +361,279 @@
             watched: false
         }));
 
-        // --- NEW STATE VARIABLES ---
+        // --- STATE VARIABLES ---
         let sortState = { col: null, asc: true };
         let selectedIndices = new Set();
-        let lastSelectedIndex = -1; // For Shift+Click ranges
-        let draggedItemIndex = null; // Drag and Drop State
-
+        let lastSelectedIndex = -1; 
+        let draggedItemIndex = null;
         let activeVideoId = null;
-        let currentIndex = -1; // Index in the currently sorted playlist
+        let currentIndex = -1; 
         let player = null;
         let fetchTimeout = null;
+        
+        // Search & Filter
+        let searchTerm = ""; // New Search State
+
+        // Column Config
+        // Key matching the data field or logical ID
+        // Column Config
+        // Key matching the data field or logical ID
+        const columnsConfig = [
+            { key: 'index', label: '#', cls: 'col-index', sortable: false },
+            { key: 'watched', label: 'Watched', cls: 'col-watched', sortable: false },
+            { key: 'thumbnail', label: 'Thumbnail', cls: 'col-thumbnail', sortable: false },
+            { key: 'title', label: 'Title', cls: 'col-title', sortable: true },
+            { key: 'tldr', label: 'TL;DR', width: 'w-24', sortable: false },
+            { key: 'original_date', label: 'Orig. Date', cls: 'col-original_date', sortable: true },
+            { key: 'published_at', label: 'Upload Date', cls: 'col-published_at', sortable: true },
+            { key: 'channel', label: 'Channel', cls: 'col-channel', sortable: true },
+            { key: 'desc', label: 'Desc', width: 'w-32', sortable: false },
+            { key: 'tags', label: 'Tags', width: 'w-32', sortable: false },
+            { key: 'duration', label: 'Dur.', cls: 'col-duration', sortable: true },
+            { key: 'rating', label: 'Rating', cls: 'col-rating', sortable: false },
+            { key: 'notes', label: 'Notes', align: 'text-center', width: 'w-8', sortable: false }
+        ];
+
+        // Load Visibility State
+        let visibleColumns = JSON.parse(localStorage.getItem('visible_cols')) || {
+            index: true, watched: true, thumbnail: true, title: true,
+            tldr: true, original_date: true, published_at: true, channel: true,
+            desc: true, tags: true, duration: true, rating: true, notes: true
+        };
+
+        // Load Custom Widths (Fix for Snap Back)
+        let customWidths = JSON.parse(localStorage.getItem('col_widths')) || {};
+
+        // --- SEARCH LOGIC ---
+        document.getElementById('table-search').addEventListener('input', (e) => {
+            searchTerm = e.target.value.toLowerCase();
+            renderTable(); // Re-render with filter
+        });
+
+        // --- VISIBILITY MODAL LOGIC ---
+        document.getElementById('btn-cols').addEventListener('click', () => {
+            const list = document.getElementById('col-list');
+            list.innerHTML = '';
+
+            // 1. Select All Checkbox
+            const allRow = document.createElement('label');
+            allRow.className = 'flex items-center gap-2 text-sm cursor-pointer hover:text-white font-bold border-b border-border pb-2 mb-2';
+            const allChecked = Object.values(visibleColumns).every(v => v === true);
+            allRow.innerHTML = `
+                <input type="checkbox" 
+                    id="col-select-all"
+                    class="rounded bg-bg-dark border-border text-primary focus:ring-0"
+                    ${allChecked ? 'checked' : ''}
+                    onchange="toggleAllColumns(this.checked)"
+                >
+                Select All
+            `;
+            list.appendChild(allRow);
+
+            // 2. Individual Columns
+            columnsConfig.forEach(col => {
+                const row = document.createElement('label');
+                row.className = 'flex items-center gap-2 text-sm cursor-pointer hover:text-primary';
+                row.innerHTML = `
+                    <input type="checkbox" 
+                        class="rounded bg-bg-dark border-border text-primary focus:ring-0 indent-col"
+                        ${visibleColumns[col.key] ? 'checked' : ''}
+                        onchange="toggleColumn('${col.key}')"
+                    >
+                    ${col.label}
+                `;
+                list.appendChild(row);
+            });
+            document.getElementById('col-modal').showModal();
+        });
+
+        function toggleAllColumns(checked) {
+            Object.keys(visibleColumns).forEach(key => visibleColumns[key] = checked);
+            localStorage.setItem('visible_cols', JSON.stringify(visibleColumns));
+            
+            // visually update all boxes
+            document.querySelectorAll('#col-list input[type="checkbox"]').forEach(box => box.checked = checked);
+            
+            renderHeaders();
+            renderTable();
+        }
+
+        function toggleColumn(key) {
+            visibleColumns[key] = !visibleColumns[key];
+            localStorage.setItem('visible_cols', JSON.stringify(visibleColumns));
+            
+            // Update Select All State
+            const allChecked = Object.values(visibleColumns).every(v => v === true);
+            const allBox = document.getElementById('col-select-all');
+            if(allBox) allBox.checked = allChecked;
+
+            renderHeaders();
+            renderTable();
+        }
+
+        // --- RENDER HEADERS ---
+        // --- RENDER HEADERS ---
+        // --- RENDER HEADERS (FIXED: SEPARATE SORT TARGET) ---
+        function renderHeaders() {
+            const thead = document.getElementById('tableHead');
+            thead.innerHTML = '';
+            const tr = document.createElement('tr');
+            
+            const staticCols = ['index', 'watched', 'thumbnail', 'original_date', 'published_at', 'rating', 'duration'];
+
+            columnsConfig.forEach(col => {
+                if (!visibleColumns[col.key]) return;
+
+                const th = document.createElement('th');
+                let classes = "resizable-col px-4 py-3 relative "; // Added relative
+                if (col.cls) classes += col.cls + " "; 
+                
+                // Priority: Custom Width > Config Width > Auto
+                if (customWidths[col.key]) {
+                    th.style.width = customWidths[col.key] + 'px';
+                    th.style.minWidth = customWidths[col.key] + 'px';
+                    th.style.maxWidth = customWidths[col.key] + 'px';
+                } else {
+                    if (col.width) classes += col.width + " ";
+                }
+                
+                if (col.align) classes += col.align + " ";
+                th.className = classes;
+                th.id = 'th-' + col.key;
+
+                // 1. Label Container (The ONLY clickable sort target)
+                const labelSpan = document.createElement('span');
+                labelSpan.className = "flex items-center gap-1 truncate w-full h-full select-none";
+                labelSpan.textContent = col.label;
+
+                const isSortable = !['index', 'thumbnail', 'notes'].includes(col.key);
+                
+                if (isSortable) {
+                    labelSpan.classList.add("cursor-pointer", "hover:text-white");
+                    labelSpan.onclick = (e) => {
+                        e.stopPropagation(); // Stop bubbling
+                        sortPlaylist(col.key);
+                    };
+                    
+                    // Add Sort Indicator
+                    if (sortState.col === col.key) {
+                        const arrow = document.createElement('span');
+                        arrow.className = "text-[10px] ml-1";
+                        arrow.textContent = sortState.asc ? '▲' : '▼';
+                        labelSpan.appendChild(arrow);
+                    }
+                }
+                
+                th.appendChild(labelSpan);
+
+                // 2. Resizer (Sibling to label, does NOT trigger sort)
+                if (!staticCols.includes(col.key)) {
+                    const resizer = document.createElement('div');
+                    resizer.className = 'col-resizer';
+                    // Inline styles used to ensure hit area is robust
+                    resizer.style.position = 'absolute';
+                    resizer.style.right = '0';
+                    resizer.style.top = '0';
+                    resizer.style.bottom = '0';
+                    resizer.style.width = '12px'; // Wide hit area
+                    resizer.style.cursor = 'col-resize';
+                    resizer.style.zIndex = '10';
+                    resizer.style.transform = 'translateX(50%)'; // Center over border
+                    
+                    th.appendChild(resizer);
+                }
+
+                tr.appendChild(th);
+            });
+            thead.appendChild(tr);
+            
+            makeColumnsResizable();
+        }
+
+        // --- RENDER TABLE ---
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            // 1. Filter
+            let filteredPlaylist = playlist.map((item, index) => ({ item, originalIndex: index }));
+            
+            if (searchTerm) {
+                filteredPlaylist = filteredPlaylist.filter(wrapper => {
+                    const i = wrapper.item;
+                    const text = (i.title + ' ' + i.channel + ' ' + (i.tags||[]).join(' ')).toLowerCase();
+                    return text.includes(searchTerm);
+                });
+            }
+
+            // 2. Render Rows
+            filteredPlaylist.forEach(({ item, originalIndex }) => {
+                const vidId = item.youtube_id;
+                const isActive = (vidId === activeVideoId);
+                const isSelected = selectedIndices.has(originalIndex);
+
+                const tr = document.createElement('tr');
+                let classes = "group transition-colors cursor-pointer select-none "; 
+                if (isActive) classes += "row-active bg-surface "; 
+                else if (isSelected) classes += "row-selected ";
+                else classes += "hover:bg-surface ";
+                
+                tr.className = classes;
+                
+                // Events (Use originalIndex for logic)
+                tr.setAttribute('draggable', 'true');
+                tr.ondragstart = (e) => handleDragStart(e, originalIndex);
+                tr.ondragend = (e) => handleDragEnd(e);
+                tr.ondragover = (e) => handleDragOver(e, originalIndex);
+                tr.ondragleave = (e) => handleDragLeave(e, originalIndex);
+                tr.ondrop = (e) => handleDrop(e, originalIndex);
+                tr.onclick = (e) => handleRowClick(e, originalIndex);
+                tr.ondblclick = () => loadVideoByIndex(originalIndex);
+
+                // Data Prep
+                const thumbnail = item.thumbnail_url || `https://img.youtube.com/vi/${vidId}/default.jpg`;
+                const tldr = "-"; 
+                const desc = "-"; 
+                const rating = "☆☆☆☆☆";
+                const tags = item.tags || [];
+
+                // Dynamic Column Rendering
+                let html = '';
+                
+                if (visibleColumns.index) html += `<td class="text-center text-text-sub font-mono text-xs">${isActive ? '<span class="material-symbols-rounded text-primary animate-pulse text-base">equalizer</span>' : (originalIndex + 1)}</td>`;
+                
+                if (visibleColumns.watched) html += `<td class="text-center"><input type="checkbox" ${item.watched ? 'checked' : ''} onclick="toggleWatched(event, ${originalIndex})" class="rounded bg-bg-dark border-border text-primary focus:ring-0 cursor-pointer"></td>`;
+                
+                if (visibleColumns.thumbnail) html += `<td class="text-center p-1"><img src="${thumbnail}" style="height: 30px; border-radius: 2px; margin: auto;"></td>`;
+                
+                if (visibleColumns.title) html += `<td class="font-medium text-white max-w-[300px]" title="${item.title}">${item.title}</td>`;
+                
+                if (visibleColumns.tldr) html += `<td class="text-xs text-text-sub">${tldr}</td>`;
+                
+                if (visibleColumns.original_date) html += `<td class="text-xs font-mono text-text-sub">${item.original_date || '-'}</td>`;
+                
+                if (visibleColumns.published_at) html += `<td class="text-xs font-mono text-text-sub">${item.published_at || '-'}</td>`;
+                
+                if (visibleColumns.channel) html += `<td class="text-sm text-text-sub">${item.channel || ''}</td>`;
+                
+                if (visibleColumns.desc) html += `<td class="text-xs text-text-sub max-w-[200px] truncate">${desc}</td>`;
+                
+                if (visibleColumns.tags) html += `<td>${tags.map(t => `<span class="tag-pill">${t}</span>`).join('')}</td>`;
+                
+                if (visibleColumns.duration) html += `<td class="text-right font-mono text-xs">${item.duration || '--:--'}</td>`;
+                
+                if (visibleColumns.rating) html += `<td class="text-center star-rating text-lg leading-none pb-1">${rating}</td>`;
+                
+                if (visibleColumns.notes) html += `<td class="text-center">${localStorage.getItem('note_' + vidId) ? '<span class="material-symbols-rounded text-xs text-primary">description</span>' : ''}</td>`;
+
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
 
         // --- SORTING LOGIC ---
         function sortPlaylist(key) {
-            // Toggle direction if clicking same column
+            // Toggle sort state
             if (sortState.col === key) {
                 sortState.asc = !sortState.asc;
             } else {
@@ -232,105 +641,36 @@
                 sortState.asc = true;
             }
 
-            // Perform sort
+            // Sort logic
             playlist.sort((a, b) => {
                 let valA = a[key] || '';
                 let valB = b[key] || '';
-
+                
                 if (typeof valA === 'string') valA = valA.toLowerCase();
                 if (typeof valB === 'string') valB = valB.toLowerCase();
-
+                
                 if (valA < valB) return sortState.asc ? -1 : 1;
                 if (valA > valB) return sortState.asc ? 1 : -1;
                 return 0;
             });
-
-            // Update Header Styling
-            document.querySelectorAll('th.sortable').forEach(th => {
-                th.classList.remove('sort-asc', 'sort-desc');
-            });
-            const activeTh = document.getElementById('th-' + key);
-            if (activeTh) activeTh.classList.add(sortState.asc ? 'sort-asc' : 'sort-desc');
-
+            
+            // Re-render
+            renderHeaders(); 
             renderTable();
         }
 
-        // --- DRAG AND DROP LOGIC ---
-        function handleDragStart(e, index) {
-            draggedItemIndex = index;
-            e.dataTransfer.effectAllowed = 'move';
-            e.target.style.opacity = '0.3';
-        }
-        
-        function handleDragEnd(e) {
-            e.target.style.opacity = '1';
-            document.querySelectorAll('.drop-target').forEach(row => row.classList.remove('drop-target'));
-        }
-
-        function handleDragOver(e, index) {
-            e.preventDefault(); // Necessary to allow dropping
-            const row = e.currentTarget;
-            row.classList.add('drop-target');
-            e.dataTransfer.dropEffect = 'move';
-        }
-
-        function handleDragLeave(e, index) {
-            const row = e.currentTarget;
-            row.classList.remove('drop-target');
-        }
-
-        function handleDrop(e, index) {
-            e.preventDefault();
-            const row = e.currentTarget;
-            row.classList.remove('drop-target');
-
-            if (draggedItemIndex === null || draggedItemIndex === index) return;
-
-            // Reorder Playlist
-            const item = playlist[draggedItemIndex];
-            playlist.splice(draggedItemIndex, 1);
-            playlist.splice(index, 0, item);
-
-            // Reset Sort State (Manual order overrides sort)
-            sortState = { col: null, asc: true };
-            document.querySelectorAll('th.sortable').forEach(th => {
-                th.classList.remove('sort-asc', 'sort-desc');
-            });
-
-            savePlaylist();
-            renderTable();
-            draggedItemIndex = null;
-        }
-
-        // --- SELECTION LOGIC ---
-        function handleRowClick(event, index) {
-            const isCmd = event.metaKey || event.ctrlKey;
-            const isShift = event.shiftKey;
-
-            if (isShift && lastSelectedIndex !== -1) {
-                // Range Selection
+        // --- ROW SELECTION ---
+        function handleRowClick(e, index) {
+            if (e.shiftKey && lastSelectedIndex !== -1) {
                 const start = Math.min(lastSelectedIndex, index);
                 const end = Math.max(lastSelectedIndex, index);
-                selectedIndices.clear(); // Optional: Clear others? Standard behavior usually keeps
-                // Note: Standard OS behavior keeps previous cmd selections, but simplified here:
-                // Let's implement standard-ish behavior: Shift extends from anchor
-                
-                // If we want simple range replace:
-                if (!isCmd) selectedIndices.clear();
-                
-                for (let i = start; i <= end; i++) {
-                    selectedIndices.add(i);
-                }
-            } else if (isCmd) {
-                // Toggle Selection
-                if (selectedIndices.has(index)) {
-                    selectedIndices.delete(index);
-                } else {
-                    selectedIndices.add(index);
-                }
+                selectedIndices.clear();
+                for (let i = start; i <= end; i++) selectedIndices.add(i);
+            } else if (e.metaKey || e.ctrlKey) {
+                if (selectedIndices.has(index)) selectedIndices.delete(index);
+                else selectedIndices.add(index);
                 lastSelectedIndex = index;
             } else {
-                // Single Selection
                 selectedIndices.clear();
                 selectedIndices.add(index);
                 lastSelectedIndex = index;
@@ -338,55 +678,118 @@
             renderTable();
         }
 
-        function renderTable() {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
+        // --- DRAG & DROP ---
+        function handleDragStart(e, index) {
+            draggedItemIndex = index;
+            e.dataTransfer.effectAllowed = 'move';
+            e.target.classList.add('opacity-50');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('opacity-50');
+            document.querySelectorAll('tr').forEach(el => el.classList.remove('drag-over'));
+        }
+
+        function handleDragOver(e, index) {
+            e.preventDefault(); 
+            if (index === draggedItemIndex) return;
+            e.currentTarget.classList.add('drag-over');
+        }
+        
+        function handleDragLeave(e, index) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e, index) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
             
-            playlist.forEach((item, index) => {
-                const vidId = item.youtube_id;
-                const isActive = (vidId === activeVideoId);
-                const isSelected = selectedIndices.has(index);
+            if (draggedItemIndex === null || draggedItemIndex === index) return;
+            
+            const item = playlist.splice(draggedItemIndex, 1)[0];
+            playlist.splice(index, 0, item);
+            
+            draggedItemIndex = null;
+            savePlaylist();
+            renderTable();
+        }
 
-                const tr = document.createElement('tr');
-                let classes = "group transition-colors cursor-pointer border-l-2 select-none "; // Added select-none
-                if (isActive) classes += "row-active ";
-                else if (isSelected) classes += "row-selected ";
-                else classes += "hover:bg-surface border-transparent ";
+        // --- DRAG TO RESIZE COLUMNS (FIXED: STRICT PIXEL LOCKING V2) ---
+        function makeColumnsResizable() {
+            const table = document.querySelector('table');
+            
+            // Critical: Enable fixed layout
+            table.style.tableLayout = 'fixed'; 
+            table.style.boxSizing = 'border-box';
+
+            document.querySelectorAll('.col-resizer').forEach(resizer => {
+                // Double protection against sort
+                resizer.onclick = (e) => e.stopPropagation();
+
+                resizer.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation(); 
+                    
+                    const th = resizer.parentElement;
+                    const colKey = th.id.replace('th-', ''); 
+                    
+                    const startX = e.pageX; 
+                    const startWidth = th.offsetWidth;
+                    const startTableWidth = table.getBoundingClientRect().width; // Use accurate pixel width
+                    
+                    // 1. NUKE CONFLICTING STYLES
+                    // If table has 'w-full' or 'width: 100%' via CSS, it fights our pixel width.
+                    // We must force exact pixels now.
+                    table.style.width = startTableWidth + 'px';
+                    table.style.minWidth = startTableWidth + 'px';
+                    table.style.maxWidth = 'none'; // Uncap it
+
+                    // 2. FREEZE ALL COLUMNS TO PIXELS
+                    table.querySelectorAll('th').forEach(h => {
+                        const currentW = h.offsetWidth + 'px';
+                        h.style.width = currentW;
+                        h.style.minWidth = currentW;
+                        h.style.maxWidth = currentW;
+                        h.style.boxSizing = 'border-box';
+                    });
+
+                    function onMouseMove(moveEvent) {
+                        moveEvent.preventDefault();
+                        
+                        const currentX = moveEvent.pageX;
+                        const delta = currentX - startX;
+                        
+                        const newWidth = Math.max(40, startWidth + delta);
+                        const effectiveDelta = newWidth - startWidth;
+                        
+                        // 3. APPLY NEW WIDTHS (Target + Table)
+                        const px = newWidth + 'px';
+                        th.style.width = px;
+                        th.style.minWidth = px;
+                        th.style.maxWidth = px;
+
+                        // Grow table by exact same amount
+                        table.style.width = (startTableWidth + effectiveDelta) + 'px';
+                        table.style.minWidth = (startTableWidth + effectiveDelta) + 'px';
+                    }
+
+                    function onMouseUp(e) {
+                         window.removeEventListener('mousemove', onMouseMove);
+                         window.removeEventListener('mouseup', onMouseUp);
+                        
+                         // Save preference
+                         if (colKey) {
+                             const finalW = parseFloat(th.style.width);
+                             customWidths[colKey] = finalW;
+                             localStorage.setItem('col_widths', JSON.stringify(customWidths));
+                         }
+                    }
+
+                    window.addEventListener('mousemove', onMouseMove);
+                    window.addEventListener('mouseup', onMouseUp);
+                });
                 
-                tr.className = classes;
-                
-                // Drag Attributes
-                tr.setAttribute('draggable', 'true');
-                tr.ondragstart = (e) => handleDragStart(e, index);
-                tr.ondragend = (e) => handleDragEnd(e);
-                tr.ondragover = (e) => handleDragOver(e, index);
-                tr.ondragleave = (e) => handleDragLeave(e, index);
-                tr.ondrop = (e) => handleDrop(e, index);
-
-                // Click Handlers
-                tr.onclick = (e) => handleRowClick(e, index);
-                tr.ondblclick = () => loadVideoByIndex(index);
-
-                // --- NEW COLUMN RENDERING ---
-                tr.innerHTML = `
-                    <td class="px-4 py-3 text-center text-text-sub group-hover:text-white">
-                        ${isActive ? '<span class="material-symbols-rounded text-primary animate-pulse">equalizer</span>' : (index + 1)}
-                    </td>
-                    <td class="px-4 py-3 text-center col-compact-hide">
-                        <input type="checkbox" ${item.watched ? 'checked' : ''} onclick="toggleWatched(event, ${index})" class="rounded bg-bg-dark border-border text-primary focus:ring-0 cursor-pointer">
-                    </td>
-                    <td class="px-4 py-3">
-                        <div class="text-white font-medium truncate">${item.title}</div>
-                    </td>
-                    <td class="px-4 py-3 text-xs text-text-sub font-mono col-compact-hide">${item.original_date || '-'}</td>
-                    <td class="px-4 py-3 text-xs text-text-sub font-mono col-compact-hide">${item.published_at || '-'}</td>
-                    <td class="px-4 py-3 text-sm text-text-sub">${item.channel || ''}</td>
-                    <td class="px-4 py-3 col-compact-hide">
-                        ${(item.tags || []).map(t => `<span class="tag-pill">${t}</span>`).join('')}
-                    </td>
-                    <td class="px-4 py-3 text-right font-mono text-xs">${item.duration || '--:--'}</td>
-                `;
-                tbody.appendChild(tr);
+                resizer.addEventListener('click', e => e.stopPropagation());
             });
         }
 
@@ -578,66 +981,120 @@
 
         // --- RESIZABLE LAYOUTS ---
         function makeResizable() {
-            const splitV = document.getElementById('splitter-vertical');
-            const splitH = document.getElementById('splitter-horizontal');
             const leftPanel = document.getElementById('left-panel');
-            const playerPanel = document.getElementById('player-panel');
+            const videoStage = document.getElementById('video-stage');
+            const vSplitter = document.getElementById('splitter-vertical');
+            const hSplitter = document.getElementById('splitter-horizontal');
+            const shield = document.getElementById('iframe-shield');
 
-            // Load Preferences
-            const savedWidth = localStorage.getItem('layout_sidebar_width');
-            const savedHeight = localStorage.getItem('layout_player_height');
+            // 16:9 Aspect Ratio Constant
+            const RATIO = 16 / 9;
 
-            if (savedWidth) leftPanel.style.width = savedWidth + 'px';
-            if (savedHeight) playerPanel.style.height = savedHeight + 'px';
-
-            // Vertical Resize (Study Mode: Sidebar Width)
-            splitV.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                document.addEventListener('mousemove', onMouseMoveV);
-                document.addEventListener('mouseup', onMouseUpV);
-            });
-
-            function onMouseMoveV(e) {
-                // Constrain min width and max width (60%)
-                const minW = 300;
-                const maxW = window.innerWidth * 0.6;
-                let newWidth = e.clientX;
-                if (newWidth < minW) newWidth = minW;
-                if (newWidth > maxW) newWidth = maxW;
-                
-                leftPanel.style.width = newWidth + 'px';
+            // Helper: Activate Shield
+            function startDrag() {
+                if (shield) shield.style.display = 'block';
+                document.body.style.userSelect = 'none';
+                document.body.style.pointerEvents = 'none';
             }
 
-            function onMouseUpV(e) {
-                document.removeEventListener('mousemove', onMouseMoveV);
-                document.removeEventListener('mouseup', onMouseUpV);
-                localStorage.setItem('layout_sidebar_width', parseInt(leftPanel.style.width));
+            // Helper: Deactivate Shield
+            function stopDrag() {
+                if (shield) shield.style.display = 'none';
+                document.body.style.userSelect = 'auto';
+                document.body.style.pointerEvents = 'auto';
+                document.body.style.cursor = 'default';
             }
 
-            // Horizontal Resize (Jukebox Mode: Player Panel Height)
-            splitH.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                document.addEventListener('mousemove', onMouseMoveH);
-                document.addEventListener('mouseup', onMouseUpH);
-            });
+            // --- Vertical Resize (Sidebar) ---
+            if (vSplitter) {
+                vSplitter.onmousedown = function(e) {
+                    e.preventDefault();
+                    startDrag();
+                    document.body.style.cursor = 'col-resize';
+                    
+                    function onMouseMove(moveEvent) {
+                        // 1. Calculate new Sidebar Width
+                        let newSidebarWidth = moveEvent.clientX;
+                        
+                        // Safety: Minimum 250px
+                        if (newSidebarWidth < 250) newSidebarWidth = 250;
+                        
+                        // Safety: Maximum (Leave at least 150px for the video)
+                        if (newSidebarWidth > window.innerWidth - 150) {
+                            newSidebarWidth = window.innerWidth - 150;
+                        }
+                        
+                        // 2. Apply Sidebar Width
+                        leftPanel.style.width = newSidebarWidth + 'px';
+                        localStorage.setItem('layout_sidebar_width', newSidebarWidth);
 
-            function onMouseMoveH(e) {
-                // Calculate height from bottom, min 200px
-                let newHeight = window.innerHeight - e.clientY;
-                if (newHeight < 200) newHeight = 200;
-                playerPanel.style.height = newHeight + 'px';
+                        // 3. AUTO-ADJUST HEIGHT (Aspect Ratio Sync)
+                        // Player Width = Total Window - Sidebar Width
+                        const playerWidth = window.innerWidth - newSidebarWidth;
+                        
+                        // Aspect Ratio 16:9
+                        const targetHeight = playerWidth / (16/9);
+                        videoStage.style.height = targetHeight + 'px';
+                    }
+                    
+                    function onMouseUp() {
+                        stopDrag();
+                        window.removeEventListener('mousemove', onMouseMove);
+                        window.removeEventListener('mouseup', onMouseUp);
+                    }
+                    window.addEventListener('mousemove', onMouseMove);
+                    window.addEventListener('mouseup', onMouseUp);
+                };
             }
 
-            function onMouseUpH(e) {
-                document.removeEventListener('mousemove', onMouseMoveH);
-                document.removeEventListener('mouseup', onMouseUpH);
-                localStorage.setItem('layout_player_height', parseInt(playerPanel.style.height));
+            // --- Horizontal Resize (Video Height) ---
+            // Action: User changes Height -> We auto-adjust Width (Sidebar)
+            if (hSplitter) {
+                hSplitter.onmousedown = function(e) {
+                    e.preventDefault();
+                    startDrag();
+                    document.body.style.cursor = 'row-resize';
+                    
+                    const startY = e.clientY;
+                    // Get the top offset of the video to calculate accurate height
+                    const topOffset = videoStage.getBoundingClientRect().top;
+
+                    function onMouseMove(moveEvent) {
+                        // 1. Calculate new Video Height
+                        let newHeight = moveEvent.clientY - topOffset;
+                        if (newHeight < 50) newHeight = 50; // Safety min
+
+                        // 2. Apply Video Height
+                        videoStage.style.height = newHeight + 'px';
+
+                        // 3. AUTO-ADJUST WIDTH (Sidebar)
+                        // Target Player Width = Height * (16/9)
+                        const targetPlayerWidth = newHeight * RATIO;
+                        
+                        // Sidebar Width = Total Window - Target Player Width
+                        let newSidebarWidth = window.innerWidth - targetPlayerWidth;
+                        
+                        // Safety check: Don't let sidebar disappear completely
+                        if (newSidebarWidth < 0) newSidebarWidth = 0;
+
+                        leftPanel.style.width = newSidebarWidth + 'px';
+                        localStorage.setItem('layout_sidebar_width', newSidebarWidth);
+                    }
+
+                    function onMouseUp() {
+                        stopDrag();
+                        window.removeEventListener('mousemove', onMouseMove);
+                        window.removeEventListener('mouseup', onMouseUp);
+                    }
+                    window.addEventListener('mousemove', onMouseMove);
+                    window.addEventListener('mouseup', onMouseUp);
+                };
             }
         }
 
         makeResizable();
-        
-        renderTable();
+        renderHeaders(); // Init Headers
+        renderTable(); // Init Table
     </script>
 </body>
 </html>
