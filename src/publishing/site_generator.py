@@ -31,7 +31,6 @@ class SiteGenerator:
     <title>Powerlist</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
-    
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
         tailwind.config = {
@@ -58,15 +57,15 @@ class SiteGenerator:
         .mode-jukebox #player-panel { height: 80px; width: 100%; border-top: 1px solid #233648; background: #111a22; flex-direction: row; z-index: 50; }
         .mode-jukebox .study-only { display: none !important; }
         .mode-jukebox .jukebox-only { display: flex !important; }
-        .mode-jukebox .col-study-compact { display: table-cell; }
+        .mode-jukebox .col-compact-hide { display: table-cell; } /* Show all cols in Jukebox */
 
         /* Study Mode */
         .mode-study { flex-direction: row; }
-        .mode-study #left-panel { width: 30%; min-width: 320px; border-right: 1px solid #233648; overflow-y: auto; }
+        .mode-study #left-panel { width: 30%; min-width: 350px; border-right: 1px solid #233648; overflow-y: auto; }
         .mode-study #player-panel { flex: 1; display: flex; flex-direction: column; background: #101922; overflow-y: auto; }
         .mode-study .study-only { display: flex !important; }
         .mode-study .jukebox-only { display: none !important; }
-        .mode-study .col-extra { display: none; }
+        .mode-study .col-compact-hide { display: none; } /* Hide details in Sidebar */
 
         /* Row States */
         .row-selected { background-color: #233648; } 
@@ -75,6 +74,9 @@ class SiteGenerator:
         /* Volume Slider */
         .vol-container:hover .vol-slider { display: block; }
         .vol-slider { display: none; width: 80px; margin-left: 10px; accent-color: #137fec; }
+
+        /* Tags */
+        .tag-pill { background: #233648; color: #92adc9; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 4px; display: inline-block; border: 1px solid #233648; white-space: nowrap; }
 
         /* Modal */
         dialog::backdrop { background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(2px); }
@@ -111,8 +113,12 @@ class SiteGenerator:
                 <thead class="bg-surface sticky top-0 z-10 text-xs uppercase text-text-sub font-semibold tracking-wider shadow-sm">
                     <tr>
                         <th class="px-4 py-3 w-12 text-center">#</th>
+                        <th class="px-4 py-3 w-12 text-center col-compact-hide">Watched</th>
                         <th class="px-4 py-3">Title</th>
-                        <th class="px-4 py-3 col-extra">Channel</th>
+                        <th class="px-4 py-3 col-compact-hide">Original Date</th>
+                        <th class="px-4 py-3 col-compact-hide">Upload Date</th>
+                        <th class="px-4 py-3">Channel</th>
+                        <th class="px-4 py-3 col-compact-hide">Tags</th>
                         <th class="px-4 py-3 w-24 text-right">Dur.</th>
                     </tr>
                 </thead>
@@ -175,15 +181,12 @@ class SiteGenerator:
 
     <dialog id="addModal" class="bg-surface border border-border rounded-xl p-6 shadow-2xl backdrop:bg-black/80 text-white w-96">
         <h3 class="text-lg font-bold mb-4">Add YouTube Video</h3>
-        
-        <label class="text-xs text-text-sub uppercase font-bold tracking-wider mb-1 block">Video URL</label>
         <input type="text" id="newUrl" oninput="debounceFetch()" placeholder="Paste YouTube URL..." class="input-dark">
-        
-        <label class="text-xs text-text-sub uppercase font-bold tracking-wider mb-1 block">Title</label>
         <input type="text" id="newTitle" placeholder="Video Title" class="input-dark">
-        
-        <label class="text-xs text-text-sub uppercase font-bold tracking-wider mb-1 block">Channel</label>
         <input type="text" id="newChannel" placeholder="Channel Name" class="input-dark input-disabled" readonly>
+        
+        <label class="text-xs text-text-sub uppercase font-bold tracking-wider mb-1 block">Tags (comma separated)</label>
+        <input type="text" id="newTags" placeholder="e.g. Jazz, Study, Drum Solo" class="input-dark">
 
         <div class="flex justify-end gap-2 mt-4">
             <button onclick="closeAddModal()" class="px-4 py-2 text-sm text-text-sub hover:text-white">Cancel</button>
@@ -193,7 +196,14 @@ class SiteGenerator:
 
     <script>
         const INJECTED_DATA = __INJECT_DATA__;
-        let playlist = JSON.parse(localStorage.getItem('my_playlist')) || INJECTED_DATA;
+        // Data Structure Update: Ensure new fields exist
+        let playlist = JSON.parse(localStorage.getItem('my_playlist_v3')) || INJECTED_DATA.map(v => ({
+            ...v,
+            tags: v.tags || [],
+            original_date: v.published_at || '', 
+            watched: false
+        }));
+
         let activeVideoId = null;
         let selectedIndex = -1;
         let currentIndex = -1;
@@ -219,52 +229,52 @@ class SiteGenerator:
                 tr.onclick = () => selectRow(index);
                 tr.ondblclick = () => loadVideoByIndex(index);
 
+                // --- NEW COLUMN RENDERING ---
                 tr.innerHTML = `
                     <td class="px-4 py-3 text-center text-text-sub group-hover:text-white">
                         ${isActive ? '<span class="material-symbols-rounded text-primary animate-pulse">equalizer</span>' : (index + 1)}
                     </td>
+                    <td class="px-4 py-3 text-center col-compact-hide">
+                        <input type="checkbox" ${item.watched ? 'checked' : ''} onclick="toggleWatched(event, ${index})" class="rounded bg-bg-dark border-border text-primary focus:ring-0 cursor-pointer">
+                    </td>
                     <td class="px-4 py-3">
                         <div class="text-white font-medium truncate">${item.title}</div>
-                        <div class="text-text-sub text-xs md:hidden">${item.channel || ''}</div>
                     </td>
-                    <td class="px-4 py-3 col-extra">${item.channel || ''}</td>
+                    <td class="px-4 py-3 text-xs text-text-sub font-mono col-compact-hide">${item.original_date || '-'}</td>
+                    <td class="px-4 py-3 text-xs text-text-sub font-mono col-compact-hide">${item.published_at || '-'}</td>
+                    <td class="px-4 py-3 text-sm text-text-sub">${item.channel || ''}</td>
+                    <td class="px-4 py-3 col-compact-hide">
+                        ${(item.tags || []).map(t => `<span class="tag-pill">${t}</span>`).join('')}
+                    </td>
                     <td class="px-4 py-3 text-right font-mono text-xs">${item.duration || '--:--'}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // --- FETCH METADATA LOGIC ---
-        function debounceFetch() {
-            clearTimeout(fetchTimeout);
-            fetchTimeout = setTimeout(fetchMetadata, 500);
+        // --- NEW LOGIC: WATCHED TOGGLE ---
+        function toggleWatched(e, index) {
+            e.stopPropagation(); // Stop click from selecting row
+            playlist[index].watched = !playlist[index].watched;
+            savePlaylist();
         }
+
+        // --- FETCH METADATA ---
+        function debounceFetch() { clearTimeout(fetchTimeout); fetchTimeout = setTimeout(fetchMetadata, 500); }
 
         async function fetchMetadata() {
             const url = document.getElementById('newUrl').value;
-            const titleInput = document.getElementById('newTitle');
-            const channelInput = document.getElementById('newChannel');
-
-            if (url.length < 10 || !url.includes('youtube.com') && !url.includes('youtu.be')) return;
-
-            titleInput.placeholder = "Fetching metadata...";
-            channelInput.value = "Searching...";
-
+            if (url.length < 10) return;
+            document.getElementById('newTitle').placeholder = "Fetching...";
+            
             try {
-                // Use Noembed (CORS compatible oEmbed wrapper)
                 const res = await fetch(`https://noembed.com/embed?url=${url}`);
                 const data = await res.json();
-                
                 if (data.title) {
-                    titleInput.value = data.title;
-                    channelInput.value = data.author_name; // 'author_name' is the Channel Name
-                } else {
-                    titleInput.placeholder = "Could not find title";
+                    document.getElementById('newTitle').value = data.title;
+                    document.getElementById('newChannel').value = data.author_name;
                 }
-            } catch (e) {
-                console.error(e);
-                channelInput.value = "Error fetching";
-            }
+            } catch (e) { console.error(e); }
         }
 
         // --- PLAYLIST MANAGEMENT ---
@@ -275,7 +285,8 @@ class SiteGenerator:
         function submitAddVideo() {
             const url = document.getElementById('newUrl').value;
             const title = document.getElementById('newTitle').value || 'New Video';
-            const channel = document.getElementById('newChannel').value || 'Added User';
+            const channel = document.getElementById('newChannel').value || 'User';
+            const tagsRaw = document.getElementById('newTags').value;
             
             let vidId = '';
             if (url.includes('v=')) vidId = url.split('v=')[1].split('&')[0];
@@ -286,19 +297,21 @@ class SiteGenerator:
                     youtube_id: vidId,
                     title: title,
                     channel: channel,
-                    duration: 'VOD'
+                    duration: 'VOD',
+                    published_at: new Date().toISOString().split('T')[0],
+                    tags: tagsRaw ? tagsRaw.split(',').map(t=>t.trim()) : [],
+                    watched: false
                 };
                 playlist.push(newVideo);
                 savePlaylist();
                 renderTable();
                 closeAddModal();
-                // Reset Fields
+                // Clear
                 document.getElementById('newUrl').value = '';
                 document.getElementById('newTitle').value = '';
                 document.getElementById('newChannel').value = '';
-            } else {
-                alert('Invalid YouTube URL');
-            }
+                document.getElementById('newTags').value = '';
+            } else { alert('Invalid URL'); }
         }
 
         function deleteSelected() {
@@ -312,10 +325,11 @@ class SiteGenerator:
         }
 
         function savePlaylist() {
-            localStorage.setItem('my_playlist', JSON.stringify(playlist));
+            // Updated Key to 'v3' to reset structure safely
+            localStorage.setItem('my_playlist_v3', JSON.stringify(playlist));
         }
 
-        // --- EXISTING PLAYER LOGIC ---
+        // --- PLAYER LOGIC ---
         function selectRow(index) { selectedIndex = index; renderTable(); }
         
         function loadVideoByIndex(index) {
@@ -355,6 +369,7 @@ class SiteGenerator:
 
             if (mode === 'study') {
                 app.className = 'mode-study';
+                document.body.classList.add('mode-study');
                 vidStage.style.display = 'block'; 
                 btnStudy.classList.replace('text-text-sub', 'text-white');
                 btnStudy.classList.add('bg-primary', 'shadow');
@@ -362,6 +377,7 @@ class SiteGenerator:
                 btnJuke.classList.add('text-text-sub');
             } else {
                 app.className = 'mode-jukebox';
+                document.body.classList.remove('mode-study');
                 vidStage.style.display = 'none';
                 btnJuke.classList.replace('text-text-sub', 'text-white');
                 btnJuke.classList.add('bg-primary', 'shadow');
