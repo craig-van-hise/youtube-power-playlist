@@ -2,10 +2,11 @@
   # Use the stable channel
   channel = "stable-24.05";
 
-  # Install Python and the C++ Library
+  # Install Python, the C++ Library, and the GitHub CLI
   packages = [
     pkgs.python3
     pkgs.stdenv.cc.cc.lib
+    pkgs.gh
   ];
 
   # Force Python to find the C++ library
