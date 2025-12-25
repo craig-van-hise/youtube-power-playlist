@@ -12,7 +12,7 @@ A "Dual-Mode" Single Page Application (SPA) designed for research, music archivi
 
 ## 3. Current Feature Set
 ### Layouts
-- **Jukebox Mode:** Data table dominates the screen; player is a sticky footer bar.
+- **Jukebox Mode:** Data table dominates the screen (scrollable); player is a sticky footer bar.
 - **Study Mode:** Split-screen; 30% width playlist on the left, 70% width video player and note-taking area on the right.
 
 ### The Player (Persistent Shell)
@@ -24,7 +24,7 @@ A "Dual-Mode" Single Page Application (SPA) designed for research, music archivi
 ### Data Table (Power User Features)
 - **Interaction:** Single-click select, Double-click play.
 - **Playlist Management:** Drag-and-drop reordering, Multi-selection.
-- **Metadata Automation:** Auto-fetch Title/Channel via Noembed.
+- **Metadata Automation:** Client-side "AI Analyst" (Gemini Flash) automatically enriches videos with TL;DR, Tags, and Original Date upon addition. Auto-fetch Title/Channel via Noembed.
 - **Columns:** 
     - **Visibility:** Modal with "Select All" toggle to show/hide columns.
     - **Static Locking:** "Index", "Thumbnail", and "Rating" columns are fixed-width and cannot be resized.
@@ -35,6 +35,7 @@ A "Dual-Mode" Single Page Application (SPA) designed for research, music archivi
 - **Navigation:** Mode switching, play logic, note-saving, and scrubber are working.
 - **Known Issue:** Column resizing is implemented but currently causes columns to shrink/squish instead of triggering horizontal scroll (Fix deferred by user).
 - **Known Issue:** Sorting logic needs verification for Date-specific strings.
+- **Resolved:** Vertical scrolling in Jukebox mode restored (CSS Fix).
 
 ## 5. Next Planned Steps
 - Refine CSS for vertical column lines and drag-handles.
