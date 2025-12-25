@@ -316,6 +316,33 @@
             vertical-align: middle;
         }
         .tag-add:hover { color: #3b82f6; }
+
+        /* PRP #28: Timestamp Chips */
+        .timestamp-chip {
+            display: inline-block;
+            background-color: #233648;
+            color: #137fec;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid rgba(19, 127, 236, 0.3);
+            margin: 0 2px;
+            vertical-align: middle;
+        }
+        .timestamp-chip:hover {
+            background-color: #137fec;
+            color: white;
+            border-color: #137fec;
+        }
+        
+        /* ContentEditable Placeholder support via CSS? Simple fix is to ensure min-height/padding */
+        #notes-area[contenteditable]:empty::before {
+            content: attr(placeholder);
+            color: gray;
+        }
     </style>
 </head>
 <body class="bg-bg-dark text-white font-sans">
@@ -393,10 +420,11 @@
             <div id="notes-container" class="study-only bg-bg-dark flex flex-col min-h-0 h-48">
                 <div class="flex items-center justify-between px-4 py-2 border-t border-b border-border bg-[#1e2d3d]">
                     <span class="text-xs font-bold uppercase tracking-wider text-white">My Notes</span>
-                    <button onclick="saveNotes()" class="text-xs text-primary hover:text-white">Save</button>
+                    <!-- Save button removed: Auto-save active -->
                 </div>
                 <div class="flex-1 bg-surface relative">
-                     <textarea id="notes-area" class="w-full h-full bg-transparent p-4 text-gray-200 resize-none outline-none font-mono text-sm leading-relaxed" placeholder="Type notes here..."></textarea>
+                     <!-- PRP #28: Replaced textarea with contenteditable div -->
+                     <div id="notes-area" contenteditable="true" class="w-full h-full bg-transparent p-4 text-gray-200 outline-none font-mono text-sm leading-relaxed overflow-y-auto whitespace-pre-wrap" placeholder="Type notes here... (Timestamps are interactive)"></div>
                 </div>
             </div>
 
@@ -2054,15 +2082,25 @@
             document.getElementById('study-title').textContent = item.title;
             renderTable();
 
+            // Notes Logic: Handle legacy text vs new HTML
             const savedNote = localStorage.getItem('note_' + activeVideoId) || '';
-            document.getElementById('notes-area').value = savedNote;
+            const notesDiv = document.getElementById('notes-area');
+            
+            // Heuristic: If it contains HTML tags, assume it's formatted. If not, it's likely plain text.
+            if (savedNote.includes('<') && savedNote.includes('>')) {
+                 notesDiv.innerHTML = savedNote;
+            } else {
+                 // Convert newlines to breaks for display
+                 notesDiv.innerHTML = savedNote.replace(/\n/g, '<br>');
+            }
 
             if(player && player.loadVideoById) player.loadVideoById(activeVideoId);
         }
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Delete' || e.key === 'Backspace') {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                // Fix: Ignore if typing in Input, Textarea, or ContentEditable Div
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
                 deleteSelected();
             }
         });
@@ -2115,15 +2153,96 @@
         }
 
         const notesArea = document.getElementById('notes-area');
-        notesArea.addEventListener('input', () => { if(activeVideoId) localStorage.setItem('note_' + activeVideoId, notesArea.value); });
+        
+        // Save on Input
+        notesArea.addEventListener('input', () => { 
+            if(activeVideoId) {
+                // Save innerHTML to preserve buttons/formatting
+                localStorage.setItem('note_' + activeVideoId, notesArea.innerHTML); 
+            }
+        });
+
+        // Click Handler for Timestamps (Delegation)
+        notesArea.addEventListener('click', (e) => {
+            if (e.target.classList.contains('timestamp-chip')) {
+                e.preventDefault();
+                const seconds = parseFloat(e.target.dataset.time);
+                if (!isNaN(seconds) && player) {
+                    player.seekTo(seconds, true);
+                }
+            }
+        });
+
         function insertTimestamp() {
             if(!player || !activeVideoId) return;
             const time = Math.floor(player.getCurrentTime());
             const min = Math.floor(time / 60);
             const sec = time % 60;
-            const stamp = `[${min}:${sec < 10 ? '0'+sec : sec}]`;
-            notesArea.value += `\n${stamp} `;
-            localStorage.setItem('note_' + activeVideoId, notesArea.value);
+            const formatted = `${min}:${sec < 10 ? '0'+sec : sec}`;
+            
+            // Create Chip
+            const chipHtml = `<span class="timestamp-chip" contenteditable="false" data-time="${time}">${formatted}</span>&nbsp;`;
+            
+            notesArea.focus();
+            
+            // Insert at Cursor or End
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0 && notesArea.contains(selection.anchorNode)) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents(); // Clear selection if any
+
+                // Create Elements Manually for Precise Control
+                const wrapper = document.createElement('span'); // Wrapper to insert multiple nodes if needed, or just insert individually
+                // Actually range.insertNode inserts at start. Reverse order or use documentFragment.
+                const frag = document.createDocumentFragment();
+
+                const chip = document.createElement('span');
+                chip.className = 'timestamp-chip';
+                chip.contentEditable = "false";
+                chip.dataset.time = time;
+                chip.textContent = formatted;
+
+                const space = document.createTextNode('\u00A0'); // Non-breaking space to ensure cursor has somewhere to go
+
+                frag.appendChild(chip);
+                frag.appendChild(space);
+
+                range.insertNode(frag);
+
+                // Move Cursor AFTER the space
+                range.setStartAfter(space);
+                range.setEndAfter(space);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+            } else {
+                // Fallback: Append to end
+                // We need to manually append to DOM to ensure we can place cursor
+                const chip = document.createElement('span');
+                chip.className = 'timestamp-chip';
+                chip.contentEditable = "false";
+                chip.dataset.time = time;
+                chip.textContent = formatted;
+                
+                const space = document.createTextNode('\u00A0');
+                
+                if (notesArea.lastChild && notesArea.lastChild.nodeName !== "BR") {
+                     notesArea.appendChild(document.createElement('br'));
+                }
+                
+                notesArea.appendChild(chip);
+                notesArea.appendChild(space);
+                
+                // Move cursor to very end
+                const range = document.createRange();
+                range.setStartAfter(space);
+                range.setEndAfter(space);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+            
+            // Trigger Save
+            localStorage.setItem('note_' + activeVideoId, notesArea.innerHTML);
         }
 
         var tag = document.createElement('script');
