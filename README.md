@@ -24,7 +24,8 @@ Unlike a standard playlist, the **YouTube Powerlist Player** features a persiste
 
 ### 🤖 Automation & Intelligence
 
-* **Auto-Metadata Fetching:** Paste a YouTube URL in the "Add Video" modal; the app uses **Gemini Flash (AI)** to generate a TL;DR, extract tags, and find the original air date, while Noembed fetches the Title and Channel.
+* **Auto-Metadata Fetching:** Paste a YouTube URL in the "Add Video" modal; the app uses **Gemini 2.5 Flash** to generate a TL;DR, extract tags, and find the original air date, while Noembed fetches the Title and Channel.
+* **Batch Enrichment:** Imported a playlist? One-click "Enrich" button backfills metadata for all your videos using the same AI logic.
 * **Smart Transport:** Integrated "Auto-Advance" logic plays the next video in your sorted list when the current one ends. Includes a visual scrubber in Jukebox mode for precise seeking.
 * **Note-Taking with Timestamps:** Take rich text notes in Study Mode. A single click grabs the current video time and injects a clickable timestamp into your notes.
 

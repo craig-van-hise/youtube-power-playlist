@@ -15,12 +15,14 @@ class FirestoreClient:
         if not firebase_admin._apps:
             cred_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
             
+            options = {'projectId': project_id}
+            
             if cred_path and os.path.exists(cred_path):
                 cred = credentials.Certificate(cred_path)
-                firebase_admin.initialize_app(cred)
+                firebase_admin.initialize_app(cred, options)
             else:
                 # Fallback for Cloud environments
-                firebase_admin.initialize_app()
+                firebase_admin.initialize_app(options=options)
         
         self.db = firestore.client()
 
@@ -32,10 +34,14 @@ class FirestoreClient:
 
     def get_all_videos(self, collection_name):
         """Retrieves all documents from a collection as a list."""
-        docs = self.db.collection(collection_name).stream()
-        videos = []
-        for doc in docs:
-            video_data = doc.to_dict()
-            video_data['youtube_id'] = doc.id 
-            videos.append(video_data)
-        return videos
+        try:
+            docs = self.db.collection(collection_name).stream()
+            videos = []
+            for doc in docs:
+                video_data = doc.to_dict()
+                video_data['youtube_id'] = doc.id 
+                videos.append(video_data)
+            return videos
+        except Exception as e:
+            print(f"WARNING: Firestore access failed ({e}). Returning empty list.")
+            return []

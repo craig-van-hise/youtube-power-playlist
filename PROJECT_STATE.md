@@ -24,18 +24,24 @@ A "Dual-Mode" Single Page Application (SPA) designed for research, music archivi
 ### Data Table (Power User Features)
 - **Interaction:** Single-click select, Double-click play.
 - **Playlist Management:** Drag-and-drop reordering, Multi-selection.
-- **Metadata Automation:** Client-side "AI Analyst" (Gemini Flash) automatically enriches videos with TL;DR, Tags, and Original Date upon addition. Auto-fetch Title/Channel via Noembed.
+- **Metadata Automation:** Client-side "AI Analyst" (Gemini 2.5 Flash) automatically enriches videos with TL;DR, Tags, and Original Date upon addition. Auto-fetch Title/Channel via Noembed.
 - **Columns:** 
     - **Visibility:** Modal with "Select All" toggle to show/hide columns.
     - **Static Locking:** "Index", "Thumbnail", and "Rating" columns are fixed-width and cannot be resized.
     - **Persistence:** Column visibility and custom widths are saved to localStorage.
+- **Backfill:** "Enrich" button allows batch-processing of imported videos missing metadata.
 
 ## 4. Current State & Known Bugs
-- **Status:** Functional Prototype.
+- **Status:** Functional Prototype (Phase 2 Complete).
 - **Navigation:** Mode switching, play logic, note-saving, and scrubber are working.
+- **Cloud Features:** 
+    - Google Auth & Multi-playlist support implemented.
+    - Client-Side Enrichment (Gemini 2.5) verified.
+    - Power Search (YouTube Data API) active.
 - **Known Issue:** Column resizing is implemented but currently causes columns to shrink/squish instead of triggering horizontal scroll (Fix deferred by user).
 - **Known Issue:** Sorting logic needs verification for Date-specific strings.
 - **Resolved:** Vertical scrolling in Jukebox mode restored (CSS Fix).
+- **Resolved:** Enrichment "missing model" errors fixed by upgrading to Gemini 2.5.
 
 ## 5. Next Planned Steps
 - Refine CSS for vertical column lines and drag-handles.
