@@ -1,5 +1,6 @@
 
 import os
+import json
 import google.generativeai as genai
 
 class AIAlyst:
@@ -9,58 +10,50 @@ class AIAlyst:
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable not set.")
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        
+        # Use gemini-flash-latest which is available
+        self.model = genai.GenerativeModel('gemini-flash-latest')
+        print(f"DEBUG: Initialized AIAlyst with model: gemini-flash-latest")
 
     def analyze_video_metadata(self, title, description):
         """
         Uses the Gemini API to extract structured data from video metadata.
+        Returns JSON with tldr, original_date, and tags.
         """
         prompt = f"""
-        Analyze the following video title and description to determine the performance date, primary artist, and context.
-        Provide the response in a structured format.
+        You are a Metadata Librarian for a video archive.
+        I will give you a Video Title and Description.
+        Your goal is to extract structured metadata.
 
         Title: {title}
         Description: {description}
 
-        Desired output format:
-        - performance_date: YYYY-MM-DD (estimate if necessary)
-        - is_date_estimated: boolean (true if the date is an approximation)
-        - primary_artist: string
-        - context: string (e.g., Live, Studio, Interview, Rehearsal, Lesson)
+        Return ONLY valid JSON in this format:
+        {{
+          "tldr": "A 15-word max engaging summary of what this video is actually about.",
+          "original_date": "YYYY-MM-DD" (or null if you cannot infer a specific recording/broadcast date from context. If year only, use YYYY-01-01),
+          "tags": ["tag1", "tag2", "tag3", "tag4"] (Max 5 tags, lowercase, relevant topics)
+        }}
         """
 
         try:
             response = self.model.generate_content(prompt)
-            # Basic parsing of the response (a more robust implementation would use JSON)
-            ai_response_text = response.text
-
-            # This is a simplified parser. For a real-world application, 
-            # you might ask the model to return JSON directly.
-            extracted_data = {
-                'performance_date': self._parse_field(ai_response_text, 'performance_date'),
-                'is_date_estimated': self._parse_field(ai_response_text, 'is_date_estimated').lower() == 'true',
-                'primary_artist': self._parse_field(ai_response_text, 'primary_artist'),
-                'context': self._parse_field(ai_response_text, 'context'),
-                'ai_confidence_score': 0.9  # Placeholder for confidence scoring
-            }
-            return extracted_data
+            text = response.text
+            # Clean markdown code blocks if present
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0]
+            elif "```" in text:
+                text = text.split("```")[1].split("```")[0]
+            
+            return json.loads(text.strip())
 
         except Exception as e:
             print(f"Error during AI analysis: {e}")
             return {
-                'performance_date': None,
-                'is_date_estimated': True,
-                'primary_artist': 'Unknown',
-                'context': 'Unknown',
-                'ai_confidence_score': 0.0
+                'tldr': f"Analysis failed: {str(e)}",
+                'original_date': None,
+                'tags': []
             }
-
-    def _parse_field(self, text, field_name):
-        """Helper to parse a field from the AI's text response."""
-        try:
-            return text.split(f"{field_name}: ")[1].split('\n')[0].strip()
-        except IndexError:
-            return 'Unknown'
 
 if __name__ == '__main__':
     # Example usage:
@@ -69,4 +62,4 @@ if __name__ == '__main__':
     sample_description = "Incredible performance by the master drummer Steve Gadd during the 1988 world tour."
     
     analysis_result = ai_analyst.analyze_video_metadata(sample_title, sample_description)
-    print(analysis_result)
+    print(json.dumps(analysis_result, indent=2))

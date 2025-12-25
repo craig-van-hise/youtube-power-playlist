@@ -16,21 +16,25 @@ A "Dual-Mode" Single Page Application (SPA) designed for research, music archivi
 - **Study Mode:** Split-screen; 30% width playlist on the left, 70% width video player and note-taking area on the right.
 
 ### The Player (Persistent Shell)
-- **State-Aware:** Swapping modes does not stop the video audio.
-- **Transport:** Play/Pause toggle, Next/Prev buttons, and Auto-Advance logic.
-- **Volume:** Defaults to 80% (Safe-zone); features a hover-reveal slider.
+- **State-Aware:** Swapping modes does not stop video audio.
+- **Transport:** Play/Pause, Next/Prev, Auto-Advance.
+- **Scrubber:** Interactive progress bar with real-time time display (Current / Duration) in Jukebox Mode.
+- **Volume:** Hover-reveal slider (defaults to 80%).
 
 ### Data Table (Power User Features)
-- **Interaction:** Single-click to select (grey), Double-click to play (blue).
-- **Playlist Management:** Drag-and-drop reordering; Multi-selection (Shift/Cmd/Ctrl).
-- **Metadata Automation:** "Add Video" modal uses the Noembed API to auto-fetch Title and Channel from a URL.
-- **Data Columns:** Watched (Checkbox), # (Auto-updating), Title, Original Date, Upload Date, Channel, Description, Tags, and Duration.
+- **Interaction:** Single-click select, Double-click play.
+- **Playlist Management:** Drag-and-drop reordering, Multi-selection.
+- **Metadata Automation:** Auto-fetch Title/Channel via Noembed.
+- **Columns:** 
+    - **Visibility:** Modal with "Select All" toggle to show/hide columns.
+    - **Static Locking:** "Index", "Thumbnail", and "Rating" columns are fixed-width and cannot be resized.
+    - **Persistence:** Column visibility and custom widths are saved to localStorage.
 
 ## 4. Current State & Known Bugs
 - **Status:** Functional Prototype.
-- **Navigation:** Mode switching, play logic, and note-saving are confirmed working.
-- **Known Issue:** Column resizing is visually implemented in headers but requires a more robust JS event handler for full table-column sync.
-- **Known Issue:** Sorting logic is implemented but needs verification for Date-specific sorting strings.
+- **Navigation:** Mode switching, play logic, note-saving, and scrubber are working.
+- **Known Issue:** Column resizing is implemented but currently causes columns to shrink/squish instead of triggering horizontal scroll (Fix deferred by user).
+- **Known Issue:** Sorting logic needs verification for Date-specific strings.
 
 ## 5. Next Planned Steps
 - Refine CSS for vertical column lines and drag-handles.

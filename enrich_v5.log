@@ -1,0 +1,51 @@
+/Users/vv2024/Documents/AI Projects/youtube-power-playlist/src/ingestion/ai_analyst.py:4: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+--- Starting Enrichment Agent ---
+DEBUG: Initializing Firestore for Project ID: None
+DEBUG: Initialized AIAlyst with model: gemini-flash-latest
+Fetching videos from Firestore ('archive_items')...
+Found 14 videos.
+
+Enriching: lofi hip hop radio - beats to sleep/chill to
+Saved data for document: 5qap5aO4i9A
+
+Enriching: Post Malone - Tiny Desk Concert
+Saved data for document: 9gTw2EDkaDQ
+
+Enriching: Linux in 100 Seconds
+Saved data for document: K4DyBUG242c
+Skipping (Already Enriched): Tears of Steel
+Skipping (Already Enriched): Sintel - Third Open Movie
+Skipping (Already Enriched): Big Buck Bunny
+Skipping (Already Enriched): Steve Gadd - 'Aja' Drum Solo - Live in '78
+
+Enriching: Paul Simon - 50 Ways to Leave Your Lover - Steve Gadd
+Saved data for document: dummy_id_2
+
+Enriching: Chick Corea - Spain - with Steve Gadd on drums
+Saved data for document: dummy_id_3
+
+Enriching: Steve Gadd Band - 'Green Foam' - Studio Rehearsal
+Saved data for document: dummy_id_4
+
+Enriching: Steve Gadd: Drum Lesson on Mozambique
+Saved data for document: dummy_id_5
+
+Enriching: Eric Clapton - 'Tears in Heaven' (Unplugged) ft. Steve Gadd
+Saved data for document: dummy_id_6
+
+Enriching: lofi hip hop radio - beats to relax/study to
+Saved data for document: jfKfPfyJRdk
+
+Enriching: Steve Gadd - Aja (Drum Solo Breakdown)
+Saved data for document: w8X6eWpZ8Zk
+
+Enrichment Complete. Updated 10 videos.
+Cache updated: data/playlist.json

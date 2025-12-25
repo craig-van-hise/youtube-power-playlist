@@ -1,0 +1,255 @@
+[
+  {
+    "description": "The darker, sleepier version of Lofi Girl.",
+    "tags": [
+      "lofi hip hop",
+      "sleep music",
+      "chill beats",
+      "music mix",
+      "relaxation"
+    ],
+    "duration": "LIVE",
+    "tldr": "Continuous stream of dark, relaxing lofi hip hop beats, marketed as the sleepy alternative to Lofi Girl.",
+    "title": "lofi hip hop radio - beats to sleep/chill to",
+    "published_at": "2023-02-28",
+    "youtube_id": "5qap5aO4i9A",
+    "channel": "Lofi Girl"
+  },
+  {
+    "duration": "18:20",
+    "tags": [
+      "post malone",
+      "tiny desk",
+      "acoustic",
+      "concert",
+      "npr"
+    ],
+    "description": "Acoustic concert.",
+    "tldr": "Post Malone performs an acoustic set for the intimate NPR Tiny Desk concert series.",
+    "title": "Post Malone - Tiny Desk Concert",
+    "published_at": "2023-08-14",
+    "youtube_id": "9gTw2EDkaDQ",
+    "channel": "NPR Music"
+  },
+  {
+    "duration": "01:40",
+    "tags": [
+      "linux",
+      "operating systems",
+      "technology",
+      "explainer",
+      "short format"
+    ],
+    "description": "Short tech video.",
+    "tldr": "A hyper-concise technical explanation summarizing the fundamentals and importance of the Linux operating system.",
+    "title": "Linux in 100 Seconds",
+    "published_at": "2021-08-20",
+    "youtube_id": "K4DyBUG242c",
+    "channel": "Fireship"
+  },
+  {
+    "duration": "12:14",
+    "tags": [
+      "sci-fi",
+      "short film",
+      "cgi",
+      "open source",
+      "robotics"
+    ],
+    "description": "Sci-Fi testing video.",
+    "tldr": "Sci-fi short film featuring advanced technology and emotional storytelling.",
+    "title": "Tears of Steel",
+    "youtube_id": "LDbJXzDHqCs",
+    "published_at": "2012-09-26",
+    "channel": "Blender Foundation",
+    "original_date": "2012-09-26"
+  },
+  {
+    "description": "Another reliable animation for playback testing.",
+    "tags": [
+      "animation",
+      "open source",
+      "short film",
+      "sintel",
+      "testing"
+    ],
+    "duration": "14:48",
+    "tldr": "Open-source animated short film, 'Sintel,' useful for video playback and format testing.",
+    "title": "Sintel - Third Open Movie",
+    "youtube_id": "YE7VzlLtp-4",
+    "published_at": "2010-09-27",
+    "channel": "Blender Foundation",
+    "original_date": "2010-09-27"
+  },
+  {
+    "duration": "10:34",
+    "tags": [
+      "animation",
+      "open source",
+      "short film",
+      "comedy",
+      "rabbit"
+    ],
+    "description": "The classic open source movie. Great for testing.",
+    "tldr": "Open source animated short film featuring a giant rabbit's revenge on forest bullies.",
+    "title": "Big Buck Bunny",
+    "published_at": "2008-04-10",
+    "youtube_id": "aqz-KE-bpKQ",
+    "channel": "Blender Foundation",
+    "original_date": "2008-04-10"
+  },
+  {
+    "performance_date": "1978-09-20",
+    "context": "Live",
+    "is_date_estimated": false,
+    "tags": [
+      "steve gadd",
+      "drum solo",
+      "aja",
+      "live performance",
+      "1978"
+    ],
+    "primary_artist": "Steely Dan",
+    "last_updated": "2025-12-23T19:27:11.018479",
+    "ai_confidence_score": 0.95,
+    "url": "https://www.youtube.com/watch?v=fake_video_1",
+    "title": "Steve Gadd - 'Aja' Drum Solo - Live in '78",
+    "youtube_id": "dummy_id_1",
+    "upload_date": "2010-05-15T12:00:00Z",
+    "tldr": "Steve Gadd performs an incredible drum solo on 'Aja' live in 1978.",
+    "original_date": "1978-01-01"
+  },
+  {
+    "performance_date": "1975-10-25",
+    "context": "Studio",
+    "is_date_estimated": false,
+    "tags": [
+      "paul simon",
+      "steve gadd",
+      "pop music",
+      "performance",
+      "50 ways to leave your lover"
+    ],
+    "primary_artist": "Paul Simon",
+    "last_updated": "2025-12-23T19:27:11.018499",
+    "ai_confidence_score": 0.98,
+    "url": "https://www.youtube.com/watch?v=fake_video_2",
+    "title": "Paul Simon - 50 Ways to Leave Your Lover - Steve Gadd",
+    "youtube_id": "dummy_id_2",
+    "upload_date": "2012-08-01T18:30:00Z",
+    "tldr": "Paul Simon performs his classic song \"50 Ways to Leave Your Lover,\" featuring legendary drummer Steve Gadd."
+  },
+  {
+    "performance_date": "1992-07-12",
+    "context": "Live",
+    "is_date_estimated": false,
+    "tags": [
+      "chick corea",
+      "steve gadd",
+      "spain (song)",
+      "jazz fusion",
+      "piano"
+    ],
+    "primary_artist": "Chick Corea Elektric Band",
+    "last_updated": "2025-12-23T19:27:11.018503",
+    "ai_confidence_score": 0.92,
+    "url": "https://www.youtube.com/watch?v=fake_video_3",
+    "title": "Chick Corea - Spain - with Steve Gadd on drums",
+    "youtube_id": "dummy_id_3",
+    "upload_date": "2015-02-11T09:00:00Z",
+    "tldr": "A live recording of jazz legends Chick Corea and Steve Gadd performing the classic fusion composition \"Spain.\""
+  },
+  {
+    "performance_date": "2018-11-28",
+    "context": "Rehearsal",
+    "is_date_estimated": true,
+    "tags": [
+      "steve gadd band",
+      "steve gadd",
+      "studio rehearsal",
+      "jazz fusion",
+      "green foam"
+    ],
+    "primary_artist": "Steve Gadd Band",
+    "last_updated": "2025-12-23T19:27:11.018506",
+    "ai_confidence_score": 0.88,
+    "url": "https://www.youtube.com/watch?v=fake_video_4",
+    "title": "Steve Gadd Band - 'Green Foam' - Studio Rehearsal",
+    "youtube_id": "dummy_id_4",
+    "upload_date": "2018-11-30T21:00:00Z",
+    "tldr": "Steve Gadd Band rehearses their song 'Green Foam' in a studio setting."
+  },
+  {
+    "performance_date": "2020-03-18",
+    "context": "Lesson",
+    "is_date_estimated": true,
+    "tags": [
+      "steve gadd",
+      "drum lesson",
+      "mozambique rhythm",
+      "percussion",
+      "music education"
+    ],
+    "primary_artist": "Steve Gadd",
+    "last_updated": "2025-12-23T19:27:11.018509",
+    "ai_confidence_score": 0.9,
+    "url": "https://www.youtube.com/watch?v=fake_video_5",
+    "title": "Steve Gadd: Drum Lesson on Mozambique",
+    "youtube_id": "dummy_id_5",
+    "upload_date": "2020-03-20T15:00:00Z",
+    "tldr": "Legendary drummer Steve Gadd teaches the techniques and patterns required to play the complex Mozambique rhythm."
+  },
+  {
+    "performance_date": "1992-01-16",
+    "context": "Live",
+    "is_date_estimated": false,
+    "tags": [
+      "eric clapton",
+      "unplugged",
+      "acoustic",
+      "tears in heaven",
+      "steve gadd"
+    ],
+    "primary_artist": "Eric Clapton",
+    "last_updated": "2025-12-23T19:27:11.018512",
+    "ai_confidence_score": 0.97,
+    "url": "https://www.youtube.com/watch?v=fake_video_6",
+    "title": "Eric Clapton - 'Tears in Heaven' (Unplugged) ft. Steve Gadd",
+    "youtube_id": "dummy_id_6",
+    "upload_date": "2009-10-27T14:00:00Z",
+    "tldr": "Eric Clapton performs his hit acoustic ballad \"Tears in Heaven\" in the Unplugged style, featuring Steve Gadd.",
+    "original_date": "1992-01-01"
+  },
+  {
+    "description": "The famous Lofi Girl stream. Perfect for testing Study Mode.",
+    "tags": [
+      "lofi hip hop",
+      "music stream",
+      "study music",
+      "lofi girl",
+      "relaxation"
+    ],
+    "duration": "LIVE",
+    "tldr": "The famous Lofi Girl 24/7 stream providing relaxing lo-fi hip hop beats for studying.",
+    "title": "lofi hip hop radio - beats to relax/study to",
+    "published_at": "2022-07-12",
+    "youtube_id": "jfKfPfyJRdk",
+    "channel": "Lofi Girl"
+  },
+  {
+    "duration": "12:45",
+    "tags": [
+      "steve gadd",
+      "aja",
+      "drum solo",
+      "drum breakdown",
+      "music education"
+    ],
+    "description": "Steve Gadd breaking down his legendary Aja solo. Essential research.",
+    "tldr": "Legendary drummer Steve Gadd analyzes and breaks down the techniques used in his iconic \"Aja\" drum solo.",
+    "title": "Steve Gadd - Aja (Drum Solo Breakdown)",
+    "published_at": "2020-05-15",
+    "youtube_id": "w8X6eWpZ8Zk",
+    "channel": "Drumeo"
+  }
+]

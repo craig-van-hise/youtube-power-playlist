@@ -25,7 +25,7 @@ Unlike a standard playlist, the **YouTube Powerlist Player** features a persiste
 ### 🤖 Automation & Intelligence
 
 * **Auto-Metadata Fetching:** Paste a YouTube URL in the "Add Video" modal; the app uses the oEmbed API to automatically fetch the **Title** and **Channel Name**.
-* **Smart Transport:** Integrated "Auto-Advance" logic plays the next video in your sorted list when the current one ends.
+* **Smart Transport:** Integrated "Auto-Advance" logic plays the next video in your sorted list when the current one ends. Includes a visual scrubber in Jukebox mode for precise seeking.
 * **Note-Taking with Timestamps:** Take rich text notes in Study Mode. A single click grabs the current video time and injects a clickable timestamp into your notes.
 
 ### 💾 Persistence & Storage
@@ -98,6 +98,7 @@ python -m http.server 8000 --directory public
 ## 📝 Usage Tips
 
 * **Volume Control:** Hover over the volume icon in Jukebox mode to reveal the slider. It defaults to a safe **80%** to prevent audio peaks.
+* **Column Visibility:** Click the 'Columns' button to toggle specific data fields or use 'Select All' for a full view.
 * **Deletion:** Select a row and hit `Backspace` or `Delete` to remove a video from your local session.
 * **Resizing:** In Study Mode, drag the vertical bar between the playlist and player to adjust your workspace.
 

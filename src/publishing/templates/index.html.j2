@@ -126,7 +126,7 @@
 
         .mode-jukebox .table-container {
             /* Remove fixed calc, let flex handle it */
-            height: auto !important; 
+            /* height: auto !important; REMOVED to restore scroll */
             flex: 1 !important; 
         }
 
@@ -151,7 +151,17 @@
 
         /* Modal */
         dialog::backdrop { background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(2px); }
-        .input-dark { width: 100%; background: #101922; border: 1px solid #233648; border-radius: 4px; padding: 8px; margin-bottom: 16px; color: white; font-size: 14px; outline: none; }
+        .input-dark { 
+            width: 100%; 
+            background: #101922 !important; /* Override Tailwind Forms white bg */
+            border: 1px solid #233648; 
+            border-radius: 4px; 
+            padding: 8px; 
+            margin-bottom: 16px; 
+            color: white !important; 
+            font-size: 14px; 
+            outline: none; 
+        }
         .input-dark:focus { border-color: #137fec; }
         .input-disabled { background: #192633; color: #92adc9; cursor: not-allowed; }
         
@@ -231,16 +241,77 @@
         .col-resizer:hover { background: #137fec; }
 
         /* --- FIXED WIDTHS (PRP #20) --- */
-        .col-index { width: 40px; text-align: center; }
-        .col-watched { width: 40px; text-align: center; }
-        .col-thumbnail { width: 120px; }
+        /* All columns must have fixed widths to prevent squishing in fixed-layout table */
+        .col-index { width: 50px; }
+        .col-watched { width: 50px; }
+        .col-thumbnail { width: 130px; } /* Increased for safety */
         .col-original_date, .col-published_at { width: 110px; font-family: monospace; }
-        .col-rating { width: 100px; }
+        .col-rating { width: 140px; } /* Increased for safety */
         .col-duration { width: 70px; text-align: right; font-family: monospace; }
         
-        /* Dynamic Columns */
-        .col-title { min-width: 200px; }
-        .col-channel { min-width: 150px; }
+        /* Dynamic Columns - Fixed Layout Needs Explicit Widths */
+        .col-title { width: 350px; }
+        .col-channel { width: 200px; }
+        .col-tldr { width: 100px; }
+        .col-desc { width: 200px; }
+        .col-tags { width: 150px; }
+        .col-tags { width: 150px; }
+        .col-notes { width: 80px; } /* Increased from 60px and made resizable */
+
+        /* --- TABLE CARD (New Wrapper) --- */
+        #table-card {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* Jukebox Mode: Card Style */
+        .mode-jukebox #table-card {
+            margin: 24px 50px;
+            border: 1px solid #233648;
+            border-radius: 12px;
+            background-color: #101922; /* Ensure background behind table */
+        }
+        
+        /* Study Mode: Full Bleed (Sidebar) */
+        .mode-study #table-card {
+            margin: 0;
+            border: none;
+            border-radius: 0;
+        }
+        /* Tag Pills (Interactive) */
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            background: #1e2a38;
+            color: #8b9bb4;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            margin-right: 4px;
+            margin-bottom: 2px;
+            border: 1px solid #233648;
+        }
+        .tag-remove {
+            margin-left: 5px;
+            cursor: pointer;
+            color: #ff4d4d;
+            font-weight: bold;
+        }
+        .tag-remove:hover { color: #ff0000; }
+        
+        .tag-add {
+            cursor: pointer;
+            color: #137fec;
+            font-size: 14px;
+            margin-left: 4px;
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+        }
+        .tag-add:hover { color: #3b82f6; }
     </style>
 </head>
 <body class="bg-bg-dark text-white font-sans">
@@ -259,7 +330,7 @@
         <div class="flex items-center gap-3"><div class="size-9 rounded-full bg-surface border border-border"></div></div>
     </header>
 
-    <div id="app-container" class="mode-jukebox">
+    <div id="app-container" class="mode-jukebox flex-1 overflow-hidden">
         <div id="left-panel" class="bg-bg-dark" tabindex="0">
             <div class="jukebox-only p-4 flex justify-between items-center">
                 <h2 class="text-xl font-bold">All Videos</h2>
@@ -267,20 +338,23 @@
                     <span class="material-symbols-rounded text-sm">add</span> Add Video
                 </button>
             </div>
-            <div id="table-toolbar" class="jukebox-only">
-                <input type="text" id="table-search" placeholder="Search library..." class="bg-bg-dark border border-border rounded px-3 py-1.5 text-sm w-64 focus:border-primary outline-none">
-                <button id="btn-cols" class="text-sm text-text-sub hover:text-white flex items-center gap-1">
-                    <span class="material-symbols-rounded text-base">view_column</span> Columns
-                </button>
-            </div>
-
-            <div class="table-container flex-1 overflow-auto bg-bg-dark h-[calc(100vh-120px)] border-t border-border">
-                <table class="min-w-full text-left border-collapse">
-                    <thead id="tableHead" class="bg-surface sticky top-0 z-20 text-xs uppercase text-text-sub font-semibold tracking-wider shadow-sm">
-                        <!-- Headers generated by JS -->
-                    </thead>
-                    <tbody id="tableBody" class="divide-y divide-border/50 text-sm text-text-sub"></tbody>
-                </table>
+            <!-- Table Card Wrapper -->
+            <div id="table-card">
+                <div id="table-toolbar" class="jukebox-only">
+                    <input type="text" id="table-search" placeholder="Search library..." class="bg-bg-dark border border-border rounded px-3 py-1.5 text-sm w-64 focus:border-primary outline-none">
+                    <button id="btn-cols" class="text-sm text-text-sub hover:text-white flex items-center gap-1">
+                        <span class="material-symbols-rounded text-base">view_column</span> Columns
+                    </button>
+                </div>
+    
+                <div class="table-container flex-1 overflow-auto bg-bg-dark">
+                    <table class="table-fixed min-w-full text-left border-collapse" style="width: max-content; min-width: 100%;">
+                        <thead id="tableHead" class="bg-surface sticky top-0 z-20 text-xs uppercase text-text-sub font-semibold tracking-wider shadow-sm">
+                            <!-- Headers generated by JS -->
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-border/50 text-sm text-text-sub"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -360,12 +434,12 @@
 
     <dialog id="addModal" class="bg-surface border border-border rounded-xl p-6 shadow-2xl backdrop:bg-black/80 text-white w-96">
         <h3 class="text-lg font-bold mb-4">Add YouTube Video</h3>
-        <input type="text" id="newUrl" oninput="debounceFetch()" placeholder="Paste YouTube URL..." class="input-dark">
-        <input type="text" id="newTitle" placeholder="Video Title" class="input-dark">
-        <input type="text" id="newChannel" placeholder="Channel Name" class="input-dark input-disabled" readonly>
+        <input type="text" id="newUrl" oninput="debounceFetch()" placeholder="Paste YouTube URL..." class="input-dark text-white placeholder-gray-500">
+        <input type="text" id="newTitle" placeholder="Video Title" class="input-dark text-white placeholder-gray-500">
+        <input type="text" id="newChannel" placeholder="Channel Name" class="input-dark input-disabled text-white placeholder-gray-500" readonly>
         
         <label class="text-xs text-text-sub uppercase font-bold tracking-wider mb-1 block">Tags (comma separated)</label>
-        <input type="text" id="newTags" placeholder="e.g. Jazz, Study, Drum Solo" class="input-dark">
+        <input type="text" id="newTags" placeholder="e.g. Jazz, Study, Drum Solo" class="input-dark text-white placeholder-gray-500">
 
         <div class="flex justify-end gap-2 mt-4">
             <button onclick="closeAddModal()" class="px-4 py-2 text-sm text-text-sub hover:text-white">Cancel</button>
@@ -409,32 +483,115 @@
 
         // Column Config
         // Key matching the data field or logical ID
-        // Column Config
-        // Key matching the data field or logical ID
+        // Initialize Config
+        const defaultVisible = {
+            index: true, watched: true, thumbnail: true, title: true, tldr: true,
+            original_date: true, published_at: true, channel: true, desc: true,
+            tags: true, duration: true, rating: true, notes: true
+        };
+        let visibleColumns = JSON.parse(localStorage.getItem('visible_cols')) || defaultVisible;
+
+        // --- COLUMN CONFIG ---
         const columnsConfig = [
             { key: 'index', label: '#', cls: 'col-index', sortable: false },
             { key: 'watched', label: 'Watched', cls: 'col-watched', sortable: false },
             { key: 'thumbnail', label: 'Thumbnail', cls: 'col-thumbnail', sortable: false },
             { key: 'title', label: 'Title', cls: 'col-title', sortable: true },
-            { key: 'tldr', label: 'TL;DR', width: 'w-24', sortable: false },
+            { key: 'tldr', label: 'TL;DR', cls: 'col-tldr', sortable: false },
             { key: 'original_date', label: 'Orig. Date', cls: 'col-original_date', sortable: true },
             { key: 'published_at', label: 'Upload Date', cls: 'col-published_at', sortable: true },
             { key: 'channel', label: 'Channel', cls: 'col-channel', sortable: true },
-            { key: 'desc', label: 'Desc', width: 'w-32', sortable: false },
-            { key: 'tags', label: 'Tags', width: 'w-32', sortable: false },
-            { key: 'duration', label: 'Dur.', cls: 'col-duration', sortable: true },
+            { key: 'tags', label: 'Tags', cls: 'col-tags', sortable: false },
             { key: 'rating', label: 'Rating', cls: 'col-rating', sortable: false },
-            { key: 'notes', label: 'Notes', align: 'text-center', width: 'w-8', sortable: false }
+            { key: 'notes', label: 'Notes', cls: 'col-notes', align: 'text-center', sortable: false }
         ];
 
-        // Load Visibility State
-        let visibleColumns = JSON.parse(localStorage.getItem('visible_cols')) || {
-            index: true, watched: true, thumbnail: true, title: true,
-            tldr: true, original_date: true, published_at: true, channel: true,
-            desc: true, tags: true, duration: true, rating: true, notes: true
-        };
+        // --- RENDER HEADERS ---
+        function renderHeaders() {
+            const thead = document.getElementById('tableHead');
+            thead.innerHTML = '';
+            const tr = document.createElement('tr');
+            
+            // STATIC COLUMNS (No Resizing)
+            // STATIC COLUMNS (No Resizing)
+            const staticCols = ['index', 'watched', 'thumbnail', 'original_date', 'published_at', 'rating'];
 
-        // --- TRANSPORT SCRUBBER LOGIC (PRP #21) ---
+            columnsConfig.forEach(col => {
+                if (!visibleColumns[col.key]) return;
+
+                const th = document.createElement('th');
+                // Added sticky, top-0, z-20, bg-bg-dark for sticky headers
+                let classes = "px-4 py-3 relative sticky top-0 z-20 bg-bg-dark box-border border-b border-border "; 
+                
+                // Add resizable class only if NOT static
+                if (!staticCols.includes(col.key)) {
+                    classes += "resizable-col ";
+                }
+
+                if (col.cls) classes += col.cls + " "; 
+                
+                // Priority: Custom Width > Config Width > Auto
+                if (customWidths[col.key]) {
+                    th.style.width = customWidths[col.key] + 'px';
+                    th.style.minWidth = customWidths[col.key] + 'px';
+                    th.style.maxWidth = customWidths[col.key] + 'px';
+                } else {
+                    if (col.width) classes += col.width + " ";
+                }
+                
+                if (col.align) classes += col.align + " ";
+                th.className = classes;
+                th.id = 'th-' + col.key;
+
+                // 1. Label Container (The ONLY clickable sort target)
+                const labelSpan = document.createElement('span');
+                labelSpan.className = "flex items-center gap-1 truncate w-full h-full select-none";
+                labelSpan.textContent = col.label;
+
+                const isSortable = col.sortable; // Use config property
+                
+                if (isSortable) {
+                    labelSpan.classList.add("cursor-pointer", "hover:text-white");
+                    labelSpan.onclick = (e) => {
+                        e.stopPropagation(); // Stop bubbling
+                        sortPlaylist(col.key);
+                    };
+                    
+                    // Add Sort Indicator
+                    if (sortState.col === col.key) {
+                        const arrow = document.createElement('span');
+                        arrow.className = "text-[10px] ml-1";
+                        arrow.textContent = sortState.asc ? '▲' : '▼';
+                        labelSpan.appendChild(arrow);
+                    }
+                }
+                
+                th.appendChild(labelSpan);
+
+                // 2. Resizer (Sibling to label, does NOT trigger sort)
+                // ONLY add resizer if NOT a static column
+                if (!staticCols.includes(col.key)) {
+                    const resizer = document.createElement('div');
+                    resizer.className = 'col-resizer';
+                    // Inline styles to ensure hit area is correct and independent
+                    resizer.style.position = 'absolute';
+                    resizer.style.right = '0';
+                    resizer.style.top = '0';
+                    resizer.style.bottom = '0';
+                    resizer.style.width = '12px'; // Wide hit area
+                    resizer.style.cursor = 'col-resize';
+                    resizer.style.zIndex = '10';
+                    resizer.style.transform = 'translateX(50%)';
+                    
+                    th.appendChild(resizer);
+                }
+
+                tr.appendChild(th);
+            });
+            thead.appendChild(tr);
+            
+            makeColumnsResizable();
+        }
         let isDraggingScrubber = false;
         
         // Helper: Format Seconds to MM:SS
@@ -494,151 +651,85 @@
         // Load Custom Widths (Fix for Snap Back)
         let customWidths = JSON.parse(localStorage.getItem('col_widths')) || {};
 
-        // --- SEARCH LOGIC ---
-        document.getElementById('table-search').addEventListener('input', (e) => {
-            searchTerm = e.target.value.toLowerCase();
-            renderTable(); // Re-render with filter
-        });
+        // Initialize Events safely after DOM load
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Scrubber Events
+            const scrubber = document.getElementById('scrubber');
+            if (scrubber) {
+                scrubber.oninput = function() {
+                    isDraggingScrubber = true;
+                    document.getElementById('time-current').textContent = formatTime(this.value);
+                };
 
-        // --- VISIBILITY MODAL LOGIC ---
-        document.getElementById('btn-cols').addEventListener('click', () => {
-            const list = document.getElementById('col-list');
-            list.innerHTML = '';
+                scrubber.onchange = function() {
+                    isDraggingScrubber = false;
+                    if (player && player.seekTo) {
+                        player.seekTo(parseFloat(this.value), true);
+                    }
+                };
+            }
 
-            // 1. Select All Checkbox
-            const allRow = document.createElement('label');
-            allRow.className = 'flex items-center gap-2 text-sm cursor-pointer hover:text-white font-bold border-b border-border pb-2 mb-2';
-            const allChecked = Object.values(visibleColumns).every(v => v === true);
-            allRow.innerHTML = `
-                <input type="checkbox" 
-                    id="col-select-all"
-                    class="rounded bg-bg-dark border-border text-primary focus:ring-0"
-                    ${allChecked ? 'checked' : ''}
-                    onchange="toggleAllColumns(this.checked)"
-                >
-                Select All
-            `;
-            list.appendChild(allRow);
-
-            // 2. Individual Columns
-            columnsConfig.forEach(col => {
-                const row = document.createElement('label');
-                row.className = 'flex items-center gap-2 text-sm cursor-pointer hover:text-primary';
-                row.innerHTML = `
-                    <input type="checkbox" 
-                        class="rounded bg-bg-dark border-border text-primary focus:ring-0 indent-col"
-                        ${visibleColumns[col.key] ? 'checked' : ''}
-                        onchange="toggleColumn('${col.key}')"
-                    >
-                    ${col.label}
+            // 2. Column Modal Event
+            document.getElementById('btn-cols').addEventListener('click', () => {
+                const list = document.getElementById('col-list');
+                list.innerHTML = '';
+    
+                // "Select All" Checkbox
+                const allChecked = columnsConfig.every(col => visibleColumns[col.key]);
+                
+                const selectAllDiv = document.createElement('div');
+                selectAllDiv.className = "flex items-center gap-2 p-1.5 hover:bg-white/5 rounded pb-2 mb-2 border-b border-white/10";
+                selectAllDiv.innerHTML = `
+                    <input type="checkbox" ${allChecked ? 'checked' : ''} onchange="toggleAllColumns(this.checked)" class="rounded bg-bg-dark border-border text-primary focus:ring-0 cursor-pointer">
+                    <span class="text-xs text-white uppercase font-bold tracking-wider">Select All</span>
                 `;
-                list.appendChild(row);
+                list.appendChild(selectAllDiv);
+    
+                // Individual Columns
+                columnsConfig.forEach(col => {
+                    const div = document.createElement('div');
+                    div.className = "flex items-center gap-2 p-1.5 hover:bg-white/5 rounded";
+                    div.innerHTML = `
+                        <input type="checkbox" ${visibleColumns[col.key] ? 'checked' : ''} onchange="toggleColumn('${col.key}')" class="rounded bg-bg-dark border-border text-primary focus:ring-0 cursor-pointer">
+                        <span class="text-sm text-text-sub">${col.label}</span>
+                    `;
+                    list.appendChild(div);
+                });
+                
+                document.getElementById('col-modal').showModal();
             });
-            document.getElementById('col-modal').showModal();
         });
 
-        function toggleAllColumns(checked) {
-            Object.keys(visibleColumns).forEach(key => visibleColumns[key] = checked);
+        function toggleAllColumns(isChecked) {
+            columnsConfig.forEach(col => {
+                visibleColumns[col.key] = isChecked;
+            });
             localStorage.setItem('visible_cols', JSON.stringify(visibleColumns));
             
-            // visually update all boxes
-            document.querySelectorAll('#col-list input[type="checkbox"]').forEach(box => box.checked = checked);
-            
+            // Re-render modal to show updated state immediately (optional, or just close)
+            // Ideally we re-populate the list, but for now let's just re-render grid
             renderHeaders();
             renderTable();
+            
+            // Close and re-open to refresh checkboxes? Or simpler: manually update DOM
+            // Let's just re-trigger the modal render logic if it's open
+            const modal = document.getElementById('col-modal');
+            if (modal.open) {
+                document.getElementById('btn-cols').click(); // fast re-render hack or extract render function
+                modal.showModal(); // ensure open
+            }
         }
 
         function toggleColumn(key) {
             visibleColumns[key] = !visibleColumns[key];
             localStorage.setItem('visible_cols', JSON.stringify(visibleColumns));
-            
-            // Update Select All State
-            const allChecked = Object.values(visibleColumns).every(v => v === true);
-            const allBox = document.getElementById('col-select-all');
-            if(allBox) allBox.checked = allChecked;
-
             renderHeaders();
             renderTable();
-        }
-
-        // --- RENDER HEADERS ---
-        // --- RENDER HEADERS ---
-        // --- RENDER HEADERS (FIXED: SEPARATE SORT TARGET) ---
-        function renderHeaders() {
-            const thead = document.getElementById('tableHead');
-            thead.innerHTML = '';
-            const tr = document.createElement('tr');
             
-            const staticCols = ['index', 'watched', 'thumbnail', 'original_date', 'published_at', 'rating', 'duration'];
-
-            columnsConfig.forEach(col => {
-                if (!visibleColumns[col.key]) return;
-
-                const th = document.createElement('th');
-                // Added sticky, top-0, z-20, bg-bg-dark for sticky headers
-                let classes = "resizable-col px-4 py-3 relative sticky top-0 z-20 bg-bg-dark box-border border-b border-border "; 
-                if (col.cls) classes += col.cls + " "; 
-                
-                // Priority: Custom Width > Config Width > Auto
-                if (customWidths[col.key]) {
-                    th.style.width = customWidths[col.key] + 'px';
-                    th.style.minWidth = customWidths[col.key] + 'px';
-                    th.style.maxWidth = customWidths[col.key] + 'px';
-                } else {
-                    if (col.width) classes += col.width + " ";
-                }
-                
-                if (col.align) classes += col.align + " ";
-                th.className = classes;
-                th.id = 'th-' + col.key;
-
-                // 1. Label Container (The ONLY clickable sort target)
-                const labelSpan = document.createElement('span');
-                labelSpan.className = "flex items-center gap-1 truncate w-full h-full select-none";
-                labelSpan.textContent = col.label;
-
-                const isSortable = !['index', 'thumbnail', 'notes'].includes(col.key);
-                
-                if (isSortable) {
-                    labelSpan.classList.add("cursor-pointer", "hover:text-white");
-                    labelSpan.onclick = (e) => {
-                        e.stopPropagation(); // Stop bubbling
-                        sortPlaylist(col.key);
-                    };
-                    
-                    // Add Sort Indicator
-                    if (sortState.col === col.key) {
-                        const arrow = document.createElement('span');
-                        arrow.className = "text-[10px] ml-1";
-                        arrow.textContent = sortState.asc ? '▲' : '▼';
-                        labelSpan.appendChild(arrow);
-                    }
-                }
-                
-                th.appendChild(labelSpan);
-
-                // 2. Resizer (Sibling to label, does NOT trigger sort)
-                if (!staticCols.includes(col.key)) {
-                    const resizer = document.createElement('div');
-                    resizer.className = 'col-resizer';
-                    // Inline styles used to ensure hit area is robust
-                    resizer.style.position = 'absolute';
-                    resizer.style.right = '0';
-                    resizer.style.top = '0';
-                    resizer.style.bottom = '0';
-                    resizer.style.width = '12px'; // Wide hit area
-                    resizer.style.cursor = 'col-resize';
-                    resizer.style.zIndex = '10';
-                    resizer.style.transform = 'translateX(50%)'; // Center over border
-                    
-                    th.appendChild(resizer);
-                }
-
-                tr.appendChild(th);
-            });
-            thead.appendChild(tr);
-            
-            makeColumnsResizable();
+            // Check Select All state
+            const allChecked = columnsConfig.every(col => visibleColumns[col.key]);
+            const selectAllBox = document.querySelector('#col-list input[onchange^="toggleAllColumns"]');
+            if(selectAllBox) selectAllBox.checked = allChecked;
         }
 
         // --- RENDER TABLE ---
@@ -683,7 +774,7 @@
 
                 // Data Prep
                 const thumbnail = item.thumbnail_url || `https://img.youtube.com/vi/${vidId}/default.jpg`;
-                const tldr = "-"; 
+                const tldr = item.tldr || "-"; 
                 const desc = "-"; 
                 const rating = "☆☆☆☆☆";
                 const tags = item.tags || [];
@@ -691,31 +782,30 @@
                 // Dynamic Column Rendering
                 let html = '';
                 
-                if (visibleColumns.index) html += `<td class="text-center text-text-sub font-mono text-xs">${isActive ? '<span class="material-symbols-rounded text-primary animate-pulse text-base">equalizer</span>' : (originalIndex + 1)}</td>`;
+                if (visibleColumns.index) html += `<td class="text-center text-text-sub font-mono text-xs col-index">${isActive ? '<span class="material-symbols-rounded text-primary animate-pulse text-base">equalizer</span>' : (originalIndex + 1)}</td>`;
                 
-                if (visibleColumns.watched) html += `<td class="text-center"><input type="checkbox" ${item.watched ? 'checked' : ''} onclick="toggleWatched(event, ${originalIndex})" class="rounded bg-bg-dark border-border text-primary focus:ring-0 cursor-pointer"></td>`;
+                if (visibleColumns.watched) html += `<td class="text-center col-watched"><input type="checkbox" ${item.watched ? 'checked' : ''} onclick="toggleWatched(event, ${originalIndex})" class="rounded bg-bg-dark border-border text-primary focus:ring-0 cursor-pointer"></td>`;
                 
-                if (visibleColumns.thumbnail) html += `<td class="text-center p-1"><img src="${thumbnail}" style="height: 30px; border-radius: 2px; margin: auto;"></td>`;
+                if (visibleColumns.thumbnail) html += `<td class="text-center p-1 col-thumbnail"><img src="${thumbnail}" style="height: 30px; border-radius: 2px; margin: auto;"></td>`;
                 
-                if (visibleColumns.title) html += `<td class="font-medium text-white max-w-[300px]" title="${item.title}">${item.title}</td>`;
+                if (visibleColumns.title) html += `<td class="font-medium text-white col-title" title="${item.title}">${item.title}</td>`;
                 
-                if (visibleColumns.tldr) html += `<td class="text-xs text-text-sub">${tldr}</td>`;
+                if (visibleColumns.tldr) html += `<td class="text-xs text-text-sub col-tldr">${tldr}</td>`;
                 
-                if (visibleColumns.original_date) html += `<td class="text-xs font-mono text-text-sub">${item.original_date || '-'}</td>`;
+                if (visibleColumns.original_date) html += `<td class="text-xs font-mono text-text-sub col-original_date">${item.original_date || '-'}</td>`;
                 
-                if (visibleColumns.published_at) html += `<td class="text-xs font-mono text-text-sub">${item.published_at || '-'}</td>`;
+                if (visibleColumns.published_at) html += `<td class="text-xs font-mono text-text-sub col-published_at">${item.published_at || '-'}</td>`;
                 
-                if (visibleColumns.channel) html += `<td class="text-sm text-text-sub">${item.channel || ''}</td>`;
+                if (visibleColumns.channel) html += `<td class="text-sm text-text-sub col-channel">${item.channel || ''}</td>`;
                 
-                if (visibleColumns.desc) html += `<td class="text-xs text-text-sub max-w-[200px] truncate">${desc}</td>`;
+                if (visibleColumns.tags) {
+                     const tagHtml = tags.map(t => `<span class="tag-pill">${t} <span class="tag-remove" onclick="removeTag(${originalIndex}, '${t}')">×</span></span>`).join('');
+                     html += `<td class="col-tags">${tagHtml} <span class="tag-add" onclick="addNewTag(${originalIndex})">+</span></td>`;
+                }
                 
-                if (visibleColumns.tags) html += `<td>${tags.map(t => `<span class="tag-pill">${t}</span>`).join('')}</td>`;
+                if (visibleColumns.rating) html += `<td class="text-center star-rating text-lg leading-none pb-1 col-rating">${rating}</td>`;
                 
-                if (visibleColumns.duration) html += `<td class="text-right font-mono text-xs">${item.duration || '--:--'}</td>`;
-                
-                if (visibleColumns.rating) html += `<td class="text-center star-rating text-lg leading-none pb-1">${rating}</td>`;
-                
-                if (visibleColumns.notes) html += `<td class="text-center">${localStorage.getItem('note_' + vidId) ? '<span class="material-symbols-rounded text-xs text-primary">description</span>' : ''}</td>`;
+                if (visibleColumns.notes) html += `<td class="text-center col-notes">${localStorage.getItem('note_' + vidId) ? '<span class="material-symbols-rounded text-xs text-primary">description</span>' : ''}</td>`;
 
                 tr.innerHTML = html;
                 tbody.appendChild(tr);
@@ -805,7 +895,7 @@
             renderTable();
         }
 
-        // --- DRAG TO RESIZE COLUMNS (FIXED: STRICT PIXEL LOCKING V2) ---
+        // --- DRAG TO RESIZE COLUMNS (FIXED: STRICT DIRECTIONALITY V3) ---
         function makeColumnsResizable() {
             const table = document.querySelector('table');
             
@@ -826,23 +916,14 @@
                     
                     const startX = e.pageX; 
                     const startWidth = th.offsetWidth;
-                    const startTableWidth = table.getBoundingClientRect().width; // Use accurate pixel width
+                    // measure exact current pixel width to avoid "jumping"
+                    const startTableWidth = table.getBoundingClientRect().width; 
                     
-                    // 1. NUKE CONFLICTING STYLES
-                    // If table has 'w-full' or 'width: 100%' via CSS, it fights our pixel width.
-                    // We must force exact pixels now.
+                    // 1. FREEZE TABLE PIXELS 
+                    // (prevent auto-stretch behavior during resize)
                     table.style.width = startTableWidth + 'px';
                     table.style.minWidth = startTableWidth + 'px';
-                    table.style.maxWidth = 'none'; // Uncap it
-
-                    // 2. FREEZE ALL COLUMNS TO PIXELS
-                    table.querySelectorAll('th').forEach(h => {
-                        const currentW = h.offsetWidth + 'px';
-                        h.style.width = currentW;
-                        h.style.minWidth = currentW;
-                        h.style.maxWidth = currentW;
-                        h.style.boxSizing = 'border-box';
-                    });
+                    table.style.maxWidth = 'none';
 
                     function onMouseMove(moveEvent) {
                         moveEvent.preventDefault();
@@ -850,16 +931,18 @@
                         const currentX = moveEvent.pageX;
                         const delta = currentX - startX;
                         
-                        const newWidth = Math.max(40, startWidth + delta);
-                        const effectiveDelta = newWidth - startWidth;
+                        // 2. CALCULATE NEW WIDTHS
+                        const newColWidth = Math.max(40, startWidth + delta);
+                        const effectiveDelta = newColWidth - startWidth; // Actual change after min-width check
                         
-                        // 3. APPLY NEW WIDTHS (Target + Table)
-                        const px = newWidth + 'px';
-                        th.style.width = px;
-                        th.style.minWidth = px;
-                        th.style.maxWidth = px;
+                        // 3. APPLY (Target + Table ONLY)
+                        // By changing the table width by exactly the same amount as the column,
+                        // we insure the "slack" is taken up by the table's total size,
+                        // preventing any other columns from shifting.
+                        th.style.width = newColWidth + 'px';
+                        th.style.minWidth = newColWidth + 'px';
+                        th.style.maxWidth = newColWidth + 'px';
 
-                        // Grow table by exact same amount
                         table.style.width = (startTableWidth + effectiveDelta) + 'px';
                         table.style.minWidth = (startTableWidth + effectiveDelta) + 'px';
                     }
@@ -882,6 +965,25 @@
                 
                 resizer.addEventListener('click', e => e.stopPropagation());
             });
+        }
+
+        // --- TAG MANAGEMENT ---
+        function removeTag(index, tagText) {
+            const vid = playlist[index];
+            if (!vid.tags) return;
+            vid.tags = vid.tags.filter(t => t !== tagText);
+            savePlaylist();
+            renderTable();
+        }
+
+        function addNewTag(index) {
+            const newTag = prompt("Enter new tag:");
+            if (newTag && newTag.trim() !== "") {
+                if (!playlist[index].tags) playlist[index].tags = [];
+                playlist[index].tags.push(newTag.trim());
+                savePlaylist();
+                renderTable();
+            }
         }
 
         // --- NEW LOGIC: WATCHED TOGGLE ---
@@ -914,36 +1016,118 @@
         function openAddModal() { modal.showModal(); }
         function closeAddModal() { modal.close(); }
 
-        function submitAddVideo() {
-            const url = document.getElementById('newUrl').value;
-            const title = document.getElementById('newTitle').value || 'New Video';
-            const channel = document.getElementById('newChannel').value || 'User';
-            const tagsRaw = document.getElementById('newTags').value;
-            
-            let vidId = '';
-            if (url.includes('v=')) vidId = url.split('v=')[1].split('&')[0];
-            else if (url.includes('youtu.be/')) vidId = url.split('youtu.be/')[1];
+        const GEMINI_API_KEY = "{{ gemini_api_key }}";
 
-            if (vidId) {
+        async function enrichVideo(title, description) {
+            if (!GEMINI_API_KEY || GEMINI_API_KEY === "None") {
+                console.warn("No Gemini API Key found. Skipping enrichment.");
+                return {};
+            }
+
+            const prompt = `
+            You are a Metadata Librarian.
+            Title: ${title}
+            Description: ${description || "No description provided."}
+
+            Return ONLY valid JSON:
+            {
+              "tldr": "A 15-word max engaging summary.",
+              "original_date": "YYYY-MM-DD" (or null if unknown),
+              "tags": ["tag1", "tag2", "tag3", "tag4"] (Max 5 lowercase tags)
+            }
+            `;
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                const data = await response.json();
+                const text = data.candidates[0].content.parts[0].text;
+                
+                // Clean markdown
+                const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                return JSON.parse(cleanText);
+
+            } catch (e) {
+                console.error("Enrichment failed:", e);
+                return {};
+            }
+        }
+
+        async function submitAddVideo() {
+            const url = document.getElementById('newUrl').value;
+            if (!url) return;
+
+            // Extract ID
+            let vidId = '';
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            if (match && match[2].length === 11) {
+                vidId = match[2];
+            } else {
+                alert("Invalid YouTube URL");
+                return;
+            }
+
+            const btn = document.querySelector('#addModal button.bg-primary');
+            const originalBtnText = btn.textContent;
+            btn.textContent = "Analyzing...";
+            btn.disabled = true;
+
+            try {
+                // 1. Basic Metadata (Noembed)
+                // Use a CORS proxy if needed, or helper. For now direct Noembed usually has CORS headers.
+                const noembedUrl = `https://noembed.com/embed?url=https://www.youtube.com/watch?v=${vidId}`;
+                
+                const res = await fetch(noembedUrl);
+                const data = await res.json();
+                
+                const title = data.title || (document.getElementById('newTitle').value || "Unknown Title");
+                const author = data.author_name || (document.getElementById('newChannel').value || "Unknown Channel");
+                const thumb = `https://img.youtube.com/vi/${vidId}/hqdefault.jpg`;
+
+                // 2. AI Enrichment
+                console.log("Enriching video...");
+                const enrichment = await enrichVideo(title, ""); 
+                
                 const newVideo = {
                     youtube_id: vidId,
                     title: title,
-                    channel: channel,
-                    duration: 'VOD',
+                    channel: author,
+                    thumbnail_url: thumb,
+                    duration: "VOD", 
                     published_at: new Date().toISOString().split('T')[0],
-                    tags: tagsRaw ? tagsRaw.split(',').map(t=>t.trim()) : [],
-                    watched: false
+                    watched: false,
+                    tldr: enrichment.tldr || "-",
+                    original_date: enrichment.original_date || new Date().toISOString().split('T')[0],
+                    tags: enrichment.tags || [],
+                    rating: 0
                 };
-                playlist.push(newVideo);
+
+                playlist.unshift(newVideo);
                 savePlaylist();
                 renderTable();
                 closeAddModal();
-                // Clear
+                
+                // Clear inputs
                 document.getElementById('newUrl').value = '';
                 document.getElementById('newTitle').value = '';
                 document.getElementById('newChannel').value = '';
                 document.getElementById('newTags').value = '';
-            } else { alert('Invalid URL'); }
+
+            } catch (e) {
+                console.error(e);
+                alert("Error adding video: " + e.message);
+            } finally {
+                btn.textContent = originalBtnText;
+                btn.disabled = false;
+            }
         }
 
         function deleteSelected() {

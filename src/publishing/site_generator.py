@@ -3,11 +3,17 @@ import json
 from jinja2 import Environment, FileSystemLoader
 from src.database.firestore_client import FirestoreClient
 
+from dotenv import load_dotenv
+
+# Force load .env
+load_dotenv(override=True)
+
 class SiteGenerator:
     def __init__(self):
         self.db_client = FirestoreClient()
         self.output_dir = 'public'
         self.template_dir = 'src/publishing/templates'
+        self.gemini_api_key = os.getenv("GEMINI_API_KEY")
         
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
@@ -24,7 +30,10 @@ class SiteGenerator:
         template = env.get_template('index.html.j2')
         
         # Render
-        html_content = template.render(videos_json=json_string)
+        html_content = template.render(
+            videos_json=json_string,
+            gemini_api_key=self.gemini_api_key
+        )
         
         html_path = os.path.join(self.output_dir, 'index.html')
         with open(html_path, 'w') as f:
