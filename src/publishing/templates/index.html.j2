@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Powerlist</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
         tailwind.config = {
@@ -73,7 +73,8 @@
         .mode-jukebox #splitter-horizontal { display: block; }
 
         /* Jukebox Mode */
-        .mode-jukebox { flex-direction: column; }
+        /* Jukebox Mode */
+        .mode-jukebox { display: flex !important; flex-direction: column !important; }
         /* FORCE FLEXBOX LAYOUT */
         #app-container.mode-study {
             display: flex !important;
@@ -112,6 +113,7 @@
             display: flex;
             flex-direction: column;
             min-height: 0; /* Allow shrinking */
+            overflow: hidden; /* CRITICAL: Prevent panel itself from scrolling */
         }
 
         .mode-jukebox #player-panel {
@@ -125,9 +127,9 @@
         }
 
         .mode-jukebox .table-container {
-            /* Remove fixed calc, let flex handle it */
-            /* height: auto !important; REMOVED to restore scroll */
-            flex: 1 !important; 
+            flex-grow: 1 !important;
+            height: 100%; /* Ensure it fills parent */
+            overflow-y: auto !important; /* Force scroll */
         }
 
         .mode-jukebox .study-only { display: none !important; }
@@ -358,7 +360,7 @@
             <!-- Table Card Wrapper -->
             <div id="table-card">
                 <div id="table-toolbar" class="jukebox-only flex items-center gap-2">
-                    <input type="text" id="table-search" placeholder="Search library..." class="bg-bg-dark border border-border rounded px-3 py-1.5 text-sm w-64 focus:border-primary outline-none">
+                    <input type="text" id="table-search" placeholder="Search library..." oninput="searchTerm = this.value.toLowerCase(); renderTable();" class="bg-bg-dark border border-border rounded px-3 py-1.5 text-sm w-64 focus:border-primary outline-none">
                     <button id="btn-cols" class="text-sm text-text-sub hover:text-white flex items-center gap-1">
                         <span class="material-symbols-rounded text-base">view_column</span> Columns
                     </button>
@@ -548,7 +550,55 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, collection, addDoc, deleteDoc, getDocs, orderBy, query, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+
+
+        // --- HELPER FUNCTIONS FOR INTERACTIVITY ---
+        
+        async function editDate(e, index) {
+             e.stopPropagation();
+             const item = playlist[index];
+             const newDate = prompt("Enter Original Date (YYYY-MM-DD):", item.original_date || "");
+             if (newDate === null) return; // Cancel
+             
+             // Update Local
+             item.original_date = newDate;
+             renderTable();
+             savePlaylist();
+             
+             // Update Cloud (Optimistic)
+             if(window.currentPlaylistId && auth && auth.currentUser) {
+                 try {
+                     const docRef = doc(db, `users/${auth.currentUser.uid}/playlists/${currentPlaylistId}/videos`, item.firestore_id || item.youtube_id);
+                     await setDoc(docRef, { original_date: newDate }, { merge: true });
+                 } catch(err) { console.error("Date save failed", err); }
+             }
+        }
+
+        async function setRating(e, index, value) {
+            e.stopPropagation();
+            const item = playlist[index];
+            
+            // Toggle Logic: If clicking active rating, reset to 0? Or just set. Let's just set.
+            // Wait, if 5 is selected and I click 5 again, usually unsetting isn't expected in simple UI.
+            // But if I want to rate 4, I click 4.
+            item.rating = value;
+            
+            renderTable();
+            savePlaylist();
+            
+             // Update Cloud
+             if(window.currentPlaylistId && auth && auth.currentUser) {
+                 try {
+                      const docRef = doc(db, `users/${auth.currentUser.uid}/playlists/${currentPlaylistId}/videos`, item.firestore_id || item.youtube_id);
+                     await setDoc(docRef, { rating: item.rating }, { merge: true });
+                 } catch(err) { console.error("Rating save failed", err); }
+             }
+        }
+
         // --- GLOBAL EXPORTS (Must be customized per module) ---
+        window.editDate = editDate;
+        window.setRating = setRating;
+        
         window.enrichCloudPlaylist = async () => {
             console.log("Starting Enrichment Process...");
             if (!window.currentPlaylistId || !window.auth.currentUser) {
@@ -703,6 +753,20 @@
                     loadFirestorePlaylists(user.uid);
                     loadWatchedHistory(user.uid);
                     
+
+                    
+                    // Auto-Restore Last Playlist
+                    const lastId = localStorage.getItem('last_playlist_id');
+                    const lastName = localStorage.getItem('last_playlist_name');
+                    if (lastId && lastName) {
+                        console.log("Restoring last session playlist:", lastName);
+                        // Small delay to ensure firestore is fully fully ready? usually not needed inside auth
+                        window.switchPlaylist(lastId, lastName);
+                    } else {
+                        // If no last playlist, maybe load the first one? Or just wait for user.
+                        // For now, do nothing.
+                    }
+
                     if(window.currentAccessToken) {
                         loadYouTubePlaylists(window.currentAccessToken);
                     } else {
@@ -960,6 +1024,11 @@
 
                 window.currentPlaylistId = playlistId;
                 document.getElementById('current-playlist-name').textContent = name;
+                
+                // Save state for restore
+                localStorage.setItem('last_playlist_id', playlistId);
+                localStorage.setItem('last_playlist_name', name);
+                
                 document.getElementById('playlistModal').close();
 
                 // Load Videos
@@ -1099,7 +1168,6 @@
 
         // --- COLUMN CONFIG ---
         const columnsConfig = [
-            { key: 'index', label: '#', cls: 'col-index', sortable: false },
             { key: 'watched', label: 'Watched', cls: 'col-watched', sortable: false },
             { key: 'thumbnail', label: 'Thumbnail', cls: 'col-thumbnail', sortable: false },
             { key: 'title', label: 'Title', cls: 'col-title', sortable: true },
@@ -1108,7 +1176,7 @@
             { key: 'published_at', label: 'Upload Date', cls: 'col-published_at', sortable: true },
             { key: 'channel', label: 'Channel', cls: 'col-channel', sortable: true },
             { key: 'tags', label: 'Tags', cls: 'col-tags', sortable: false },
-            { key: 'rating', label: 'Rating', cls: 'col-rating', sortable: false },
+            { key: 'rating', label: 'Rating', cls: 'col-rating', sortable: true },
             { key: 'notes', label: 'Notes', cls: 'col-notes', align: 'text-center', sortable: false }
         ];
 
@@ -1118,9 +1186,15 @@
             thead.innerHTML = '';
             const tr = document.createElement('tr');
             
+            // STATIC LOCKED COLUMNS
+            // 1. Index (Sticky Left)
+            const thIndex = document.createElement('th');
+            thIndex.className = "px-4 py-3 sticky left-0 z-30 bg-bg-dark border-b border-border text-center w-12 min-w-[3rem]";
+            thIndex.innerHTML = '<span class="select-none">#</span>';
+            tr.appendChild(thIndex);
+            
             // STATIC COLUMNS (No Resizing)
-            // STATIC COLUMNS (No Resizing)
-            const staticCols = ['index', 'watched', 'thumbnail', 'original_date', 'published_at', 'rating'];
+            const staticCols = ['watched', 'thumbnail', 'original_date', 'published_at', 'rating'];
 
             columnsConfig.forEach(col => {
                 if (!visibleColumns[col.key]) return;
@@ -1362,11 +1436,20 @@
 
                 const tr = document.createElement('tr');
                 let classes = "group transition-colors cursor-pointer select-none "; 
-                if (isActive) classes += "row-active bg-surface "; 
+                if (isActive) classes += "row-active "; 
                 else if (isSelected) classes += "row-selected ";
                 else classes += "hover:bg-surface ";
                 
                 tr.className = classes;
+                if (isActive) {
+                    // Use a SOLID dark blue color mixed with the background to ensure visibility
+                    // bg-dark is #101922. Primary is #137fec. 
+                    // Let's use a manually calculated dark blue hex that stands out against #101922
+                    tr.style.setProperty('background-color', '#1c2e42', 'important'); 
+                    tr.style.setProperty('border-left', '4px solid #137fec', 'important');
+                    tr.style.fontWeight = "600"; // Make text bold
+                    tr.style.color = "#ffffff"; // Force white text
+                }
                 
                 // Events (Use originalIndex for logic)
                 tr.setAttribute('draggable', 'true');
@@ -1388,8 +1471,14 @@
                 // Dynamic Column Rendering
                 let html = '';
                 
-                if (visibleColumns.index) html += `<td class="text-center text-text-sub font-mono text-xs col-index">${isActive ? '<span class="material-symbols-rounded text-primary animate-pulse text-base">equalizer</span>' : (originalIndex + 1)}</td>`;
+                // 1. Index (Locked Sticky)
+                // Use standard filled triangle symbol 'play_arrow' but force FILL via variation settings
+                // and keep size constrained to avoid row height blowout
+                html += `<td class="text-center font-mono text-xs col-index sticky left-0 z-30 bg-bg-dark border-r border-white/5">${isActive ? 
+                    '<span class="material-symbols-rounded text-primary" style="font-size: 28px; font-variation-settings: \'FILL\' 1; vertical-align: middle;">play_arrow</span>' 
+                    : (originalIndex + 1)}</td>`;
                 
+                // Dynamic Cols
                 if (visibleColumns.watched) html += `<td class="text-center col-watched"><input type="checkbox" ${item.watched ? 'checked' : ''} onclick="toggleWatched(event, ${originalIndex})" class="rounded bg-bg-dark border-border text-primary focus:ring-0 cursor-pointer"></td>`;
                 
                 if (visibleColumns.thumbnail) html += `<td class="text-center p-1 col-thumbnail"><img src="${thumbnail}" style="height: 30px; border-radius: 2px; margin: auto;"></td>`;
@@ -1398,7 +1487,7 @@
                 
                 if (visibleColumns.tldr) html += `<td class="text-xs text-text-sub col-tldr">${tldr}</td>`;
                 
-                if (visibleColumns.original_date) html += `<td class="text-xs font-mono text-text-sub col-original_date">${item.original_date || '-'}</td>`;
+                if (visibleColumns.original_date) html += `<td class="text-xs font-mono text-text-sub col-original_date hover:text-white cursor-pointer" onclick="editDate(event, ${originalIndex})" title="Click to Edit">${item.original_date || '-'}</td>`;
                 
                 if (visibleColumns.published_at) html += `<td class="text-xs font-mono text-text-sub col-published_at">${item.published_at || '-'}</td>`;
                 
@@ -1409,11 +1498,26 @@
                      html += `<td class="col-tags">${tagHtml} <span class="tag-add" onclick="addNewTag(${originalIndex})">+</span></td>`;
                 }
                 
-                if (visibleColumns.rating) html += `<td class="text-center star-rating text-lg leading-none pb-1 col-rating">${rating}</td>`;
+                if (visibleColumns.rating) {
+                    const stars = [1,2,3,4,5].map(n => 
+                        `<span class="cursor-pointer hover:text-yellow-400 ${n <= (item.rating || 0) ? 'text-yellow-500' : 'text-gray-700'}" onclick="setRating(event, ${originalIndex}, ${n})">★</span>`
+                    ).join('');
+                     html += `<td class="text-center text-lg leading-none pb-1 col-rating whitespace-nowrap cursor-pointer hover:bg-white/5" onclick="setRating(event, ${originalIndex}, 0)" title="Click stars to rate, click empty space to clear.">${stars}</td>`;
+                }
                 
                 if (visibleColumns.notes) html += `<td class="text-center col-notes">${localStorage.getItem('note_' + vidId) ? '<span class="material-symbols-rounded text-xs text-primary">description</span>' : ''}</td>`;
 
                 tr.innerHTML = html;
+                
+                // CRITICAL FIX: Override cell backgrounds (especially Sticky Index)
+                if (isActive) {
+                    Array.from(tr.children).forEach(td => {
+                        // Use !important to override any class-based bg colors (like bg-bg-dark on sticky col)
+                        // Using a semi-transparent blue that sits on top of the dark theme
+                        td.style.setProperty('background-color', 'rgba(19, 127, 236, 0.3)', 'important');
+                    });
+                }
+
                 tbody.appendChild(tr);
             });
         }
@@ -1430,8 +1534,17 @@
 
             // Sort logic
             playlist.sort((a, b) => {
-                let valA = a[key] || '';
-                let valB = b[key] || '';
+                let valA = a[key];
+                let valB = b[key];
+                
+                // Handle missing (null/falsy) values - push to bottom?
+                if (valA === undefined || valA === null) valA = '';
+                if (valB === undefined || valB === null) valB = '';
+
+                // Numeric Check
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                     return sortState.asc ? valA - valB : valB - valA;
+                }
                 
                 if (typeof valA === 'string') valA = valA.toLowerCase();
                 if (typeof valB === 'string') valB = valB.toLowerCase();
@@ -1946,7 +2059,8 @@
             const btnStudy = document.getElementById('btn-study');
 
             if (mode === 'study') {
-                app.className = 'mode-study';
+                app.classList.remove('mode-jukebox');
+                app.classList.add('mode-study');
                 document.body.classList.add('mode-study');
                 vidStage.style.display = 'block'; 
                 btnStudy.classList.replace('text-text-sub', 'text-white');
@@ -1963,18 +2077,20 @@
                 }
 
             } else {
-                app.className = 'mode-jukebox';
+                app.classList.remove('mode-study');
+                app.classList.add('mode-jukebox');
                 document.body.classList.remove('mode-study');
                 vidStage.style.display = 'none';
                 btnJuke.classList.replace('text-text-sub', 'text-white');
                 btnJuke.classList.add('bg-primary', 'shadow');
                 btnStudy.classList.remove('bg-primary', 'shadow', 'text-white');
                 btnStudy.classList.add('text-text-sub');
-
-                // Clear Inline Styles to let CSS take over (REMOVE PROPERTY)
-                document.getElementById('left-panel').style.removeProperty('width');
-                document.getElementById('player-panel').style.removeProperty('height');
+                document.getElementById('left-panel').style.width = '100%'; 
+                
+                // Re-render table to ensure data (like Notes icons) is fresh from LS
+                renderTable(); 
             }
+
         }
 
         const notesArea = document.getElementById('notes-area');
