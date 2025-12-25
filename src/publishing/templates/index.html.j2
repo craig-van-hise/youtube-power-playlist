@@ -44,34 +44,36 @@
         }
 
         /* --- SPLITTERS --- */
+        /* --- SPLITTERS --- */
         #splitter-vertical {
             width: 12px;
             background: #0d1218;
             border-left: 1px solid #233648;
             border-right: 1px solid #233648;
             cursor: col-resize;
-            z-index: 50; /* Above everything */
+            z-index: 50; 
             flex-shrink: 0;
-            display: none; /* Default hidden (Jukebox mode) */
+            display: none; /* Study Only */
         }
         #splitter-vertical:hover { background: #137fec; }
 
-        #splitter-horizontal {
+        .splitter-h {
             height: 12px;
             background: #0d1218;
             border-top: 1px solid #233648;
             border-bottom: 1px solid #233648;
             cursor: row-resize;
-            z-index: 50; /* Above everything */
+            z-index: 50;
             width: 100%;
-            display: block !important; /* Force Visibility */
             flex-shrink: 0;
+            display: none; /* Study Only */
         }
-        #splitter-horizontal:hover { background: #137fec; }
+        .splitter-h:hover { background: #137fec; }
 
         /* Show based on mode */
-        .mode-study #splitter-vertical { display: block; }
-        .mode-jukebox #splitter-horizontal { display: block; }
+        .mode-study .study-only { display: flex !important; }
+        .mode-study #splitter-vertical { display: block !important; }
+        .mode-study .splitter-h { display: block !important; }
 
         /* Jukebox Mode */
         /* Jukebox Mode */
@@ -201,8 +203,7 @@
 
 
         /* Show based on mode */
-        .mode-study #splitter-vertical { display: block; }
-        .mode-jukebox #splitter-horizontal { display: block; }
+
 
         /* --- POWER USER GRID --- */
         #table-toolbar {
@@ -346,8 +347,11 @@
     </header>
 
     <div id="app-container" class="mode-jukebox flex-1 overflow-hidden">
-        <div id="left-panel" class="bg-bg-dark" tabindex="0">
-            <div class="jukebox-only p-4 flex justify-between items-center">
+        
+        <!-- LEFT PANEL: Playlist + Notes -->
+        <div id="left-panel" class="bg-bg-dark flex flex-col min-h-0" tabindex="0">
+            
+            <div class="jukebox-only p-4 flex justify-between items-center shrink-0">
                 <h2 class="text-xl font-bold">All Videos</h2>
                 <div class="flex gap-2">
                     <button onclick="document.getElementById('powerSearchModal').showModal()" class="text-primary hover:text-white px-3 py-2 rounded text-sm font-medium flex items-center gap-2 border border-primary/30 hover:bg-primary/10">
@@ -358,9 +362,10 @@
                     </button>
                 </div>
             </div>
-            <!-- Table Card Wrapper -->
-            <div id="table-card">
-                <div id="table-toolbar" class="jukebox-only flex items-center gap-2">
+
+            <!-- Table Card Wrapper (Top Left) -->
+            <div id="table-card" class="flex-1 min-h-0 flex flex-col">
+                <div id="table-toolbar" class="jukebox-only flex items-center gap-2 shrink-0">
                     <input type="text" id="table-search" placeholder="Search library..." oninput="searchTerm = this.value.toLowerCase(); renderTable();" class="bg-bg-dark border border-border rounded px-3 py-1.5 text-sm w-64 focus:border-primary outline-none">
                     <button id="btn-cols" class="text-sm text-text-sub hover:text-white flex items-center gap-1">
                         <span class="material-symbols-rounded text-base">view_column</span> Columns
@@ -380,46 +385,61 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Splitter Left (Between Table and Notes) -->
+            <div id="splitter-horizontal-left" class="splitter-h study-only"></div>
+
+            <!-- Notes Container (Bottom Left) -->
+            <div id="notes-container" class="study-only bg-bg-dark flex flex-col min-h-0 h-48">
+                <div class="flex items-center justify-between px-4 py-2 border-t border-b border-border bg-[#1e2d3d]">
+                    <span class="text-xs font-bold uppercase tracking-wider text-white">My Notes</span>
+                    <button onclick="saveNotes()" class="text-xs text-primary hover:text-white">Save</button>
+                </div>
+                <div class="flex-1 bg-surface relative">
+                     <textarea id="notes-area" class="w-full h-full bg-transparent p-4 text-gray-200 resize-none outline-none font-mono text-sm leading-relaxed" placeholder="Type notes here..."></textarea>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Vertical Splitter (between Left Panel and Player Panel) -->
-        <div id="splitter-vertical" class="splitter"></div>
-        <!-- Horizontal Splitter (Moved inside player panel) -->
+        <!-- Vertical Global Splitter -->
+        <div id="splitter-vertical" class="study-only"></div>
 
+        <!-- RIGHT PANEL: Player + Metadata -->
         <div id="player-panel">
 
-
-            <div id="video-stage" style="display:none; width: 100%; height: 60%; min-height: 200px; background: black;">
+            <!-- Video Stage (Top Right) -->
+            <div id="video-stage" style="display:none; width: 100%; min-height: 200px; background: black; position: relative;" class="shrink-0">
                  <div id="yt-player" style="width: 100%; height: 100%;"></div>
                  <div id="iframe-shield"></div>
             </div>
             
-            <div id="splitter-horizontal" class="splitter"></div>
+            <!-- Splitter Right (Between Player and Header) -->
+            <div id="splitter-horizontal-right" class="splitter-h study-only"></div>
 
-            <div class="study-only p-4 border-b border-border bg-surface flex justify-between items-center">
-                <div>
-                    <h2 id="study-title" class="text-white font-bold text-lg truncate max-w-md">Select a Video</h2>
-                    <div class="text-xs text-text-sub mt-1">Now Playing</div>
-                </div>
-                <div class="flex gap-2">
-                     <button onclick="insertTimestamp()" class="bg-border hover:bg-white/10 text-white px-3 py-1.5 rounded text-xs font-bold flex gap-1 items-center">
-                        <span class="material-symbols-rounded text-sm">schedule</span> Timestamp
-                     </button>
-                </div>
-            </div>
-
-            <div class="study-only flex-1 flex flex-col p-6 bg-bg-dark min-h-0">
-                <div class="flex flex-col h-full bg-surface rounded-xl border border-border overflow-hidden">
-                    <div class="flex items-center justify-between px-4 py-2 border-b border-border bg-[#1e2d3d]">
-                        <span class="text-xs font-bold uppercase tracking-wider text-white">My Notes</span>
-                        <button onclick="saveNotes()" class="text-xs text-primary hover:text-white">Save</button>
+            <!-- Study Header / Metadata (Bottom Right - Fills Remaining) -->
+            <div id="study-header" class="study-only flex-1 flex flex-col min-h-0 bg-surface">
+                <div class="p-4 border-b border-border flex justify-between items-center shrink-0">
+                    <div>
+                        <h2 id="study-title" class="text-white font-bold text-lg truncate max-w-md">Select a Video</h2>
+                        <div class="text-xs text-text-sub mt-1">Now Playing</div>
                     </div>
-                    <textarea id="notes-area" class="flex-1 w-full bg-transparent p-4 text-gray-200 resize-none outline-none font-mono text-sm leading-relaxed" placeholder="Type notes here..."></textarea>
+                    <div class="flex gap-2">
+                         <button onclick="insertTimestamp()" class="bg-border hover:bg-white/10 text-white px-3 py-1.5 rounded text-xs font-bold flex gap-1 items-center">
+                            <span class="material-symbols-rounded text-sm">schedule</span> Timestamp
+                         </button>
+                    </div>
+                </div>
+                
+                <!-- Expanded Metadata Area (Optional for future, currently just filler or we could put Description here) -->
+                <div class="p-6 overflow-y-auto text-sm text-text-sub">
+                    <p>Description and extra metadata will appear here.</p>
                 </div>
             </div>
 
+            <!-- Jukebox Footer (Standard Overlay or Bottom Bar) -->
             <div class="jukebox-only w-full h-full items-center justify-between px-4 gap-4">
-                <!-- Transport Scrubber (PRP #21) -->
+                <!-- Transport Scrubber -->
                 <div id="transport-bar" class="flex items-center gap-3 bg-bg-dark border border-border p-2 rounded-lg flex-1 mr-4">
                     <button id="btn-transport-play" onclick="togglePlay()" class="bg-primary/20 hover:bg-primary text-primary hover:text-white rounded-full p-1 transition-colors">
                         <span class="material-symbols-rounded text-lg">play_arrow</span>
@@ -2126,18 +2146,23 @@
         function makeResizable() {
             const leftPanel = document.getElementById('left-panel');
             const videoStage = document.getElementById('video-stage');
+            const notesContainer = document.getElementById('notes-container');
+            
             const vSplitter = document.getElementById('splitter-vertical');
-            const hSplitter = document.getElementById('splitter-horizontal');
+            const hSplitterRight = document.getElementById('splitter-horizontal-right');
+            const hSplitterLeft = document.getElementById('splitter-horizontal-left');
+            
             const shield = document.getElementById('iframe-shield');
 
             // 16:9 Aspect Ratio Constant
             const RATIO = 16 / 9;
 
             // Helper: Activate Shield
-            function startDrag() {
+            function startDrag(cursorType) {
                 if (shield) shield.style.display = 'block';
                 document.body.style.userSelect = 'none';
                 document.body.style.pointerEvents = 'none';
+                document.body.style.cursor = cursorType; // Global cursor override
             }
 
             // Helper: Deactivate Shield
@@ -2148,35 +2173,30 @@
                 document.body.style.cursor = 'default';
             }
 
-            // --- Vertical Resize (Sidebar) ---
+            // 1. Vertical Resize (Sidebar Width) -> Syncs Video Height
             if (vSplitter) {
                 vSplitter.onmousedown = function(e) {
                     e.preventDefault();
-                    startDrag();
-                    document.body.style.cursor = 'col-resize';
+                    startDrag('col-resize');
                     
                     function onMouseMove(moveEvent) {
-                        // 1. Calculate new Sidebar Width
                         let newSidebarWidth = moveEvent.clientX;
                         
-                        // Safety: Minimum 250px
+                        // Constraints
                         if (newSidebarWidth < 250) newSidebarWidth = 250;
+                        if (newSidebarWidth > window.innerWidth - 300) newSidebarWidth = window.innerWidth - 300; // Leave space for player
                         
-                        // Safety: Maximum (Leave at least 150px for the video)
-                        if (newSidebarWidth > window.innerWidth - 150) {
-                            newSidebarWidth = window.innerWidth - 150;
-                        }
-                        
-                        // 2. Apply Sidebar Width
+                        // Apply Width
                         leftPanel.style.width = newSidebarWidth + 'px';
                         localStorage.setItem('layout_sidebar_width', newSidebarWidth);
 
-                        // 3. AUTO-ADJUST HEIGHT (Aspect Ratio Sync)
-                        // Player Width = Total Window - Sidebar Width
-                        const playerWidth = window.innerWidth - newSidebarWidth;
+                        // Sync Video Height (16:9)
+                        // Player Area Width = Window - Sidebar Width - Splitter Width (approx 0)
+                        const playerWidth = window.innerWidth - newSidebarWidth; 
+                        const targetHeight = playerWidth / RATIO;
                         
-                        // Aspect Ratio 16:9
-                        const targetHeight = playerWidth / (16/9);
+                        // Ensure video doesn't overflow height drastically? 
+                        // Actually, if it's too tall, it pushes metadata down. That's fine.
                         videoStage.style.height = targetHeight + 'px';
                     }
                     
@@ -2190,36 +2210,29 @@
                 };
             }
 
-            // --- Horizontal Resize (Video Height) ---
-            // Action: User changes Height -> We auto-adjust Width (Sidebar)
-            if (hSplitter) {
-                hSplitter.onmousedown = function(e) {
+            // 2. Right Horizontal Resize (Video Height) -> Syncs Sidebar Width
+            if (hSplitterRight) {
+                hSplitterRight.onmousedown = function(e) {
                     e.preventDefault();
-                    startDrag();
-                    document.body.style.cursor = 'row-resize';
+                    startDrag('row-resize');
                     
-                    const startY = e.clientY;
-                    // Get the top offset of the video to calculate accurate height
-                    const topOffset = videoStage.getBoundingClientRect().top;
+                    const topOffset = videoStage.getBoundingClientRect().top; // Usually 64px (Header)
 
                     function onMouseMove(moveEvent) {
-                        // 1. Calculate new Video Height
                         let newHeight = moveEvent.clientY - topOffset;
-                        if (newHeight < 50) newHeight = 50; // Safety min
-
-                        // 2. Apply Video Height
+                        if (newHeight < 150) newHeight = 150; // Min Video Height
+                        
+                        // Apply Height
                         videoStage.style.height = newHeight + 'px';
 
-                        // 3. AUTO-ADJUST WIDTH (Sidebar)
-                        // Target Player Width = Height * (16/9)
+                        // Sync Sidebar Width
+                        // Target Player Width = Height * 16/9
                         const targetPlayerWidth = newHeight * RATIO;
-                        
-                        // Sidebar Width = Total Window - Target Player Width
                         let newSidebarWidth = window.innerWidth - targetPlayerWidth;
                         
-                        // Safety check: Don't let sidebar disappear completely
-                        if (newSidebarWidth < 0) newSidebarWidth = 0;
-
+                        if (newSidebarWidth < 250) newSidebarWidth = 250; // Min constraint overrides 16:9 slightly if forced
+                        // Note: If we clamp sidebar, the aspect ratio breaks slightly. That's acceptable for UX safety.
+                        
                         leftPanel.style.width = newSidebarWidth + 'px';
                         localStorage.setItem('layout_sidebar_width', newSidebarWidth);
                     }
@@ -2232,6 +2245,95 @@
                     window.addEventListener('mousemove', onMouseMove);
                     window.addEventListener('mouseup', onMouseUp);
                 };
+            }
+
+            // 3. Left Horizontal Resize (Notes Height)
+            if (hSplitterLeft) {
+                hSplitterLeft.onmousedown = function(e) {
+                    e.preventDefault();
+                    startDrag('row-resize');
+
+                    function onMouseMove(moveEvent) {
+                        // The notes container is at the BOTTOM.
+                        // Height = Bottom of Screen - Mouse Y
+                        const containerRect = leftPanel.getBoundingClientRect();
+                        const bottomEdge = containerRect.bottom;
+                        
+                        let newNotesHeight = bottomEdge - moveEvent.clientY;
+                        
+                        // Constraints
+                        if (newNotesHeight < 100) newNotesHeight = 100; // Min Notes
+                        if (newNotesHeight > containerRect.height - 150) newNotesHeight = containerRect.height - 150; // Don't squash table too much
+                        
+                        notesContainer.style.height = newNotesHeight + 'px';
+                        localStorage.setItem('layout_notes_height', newNotesHeight);
+                    }
+
+                    function onMouseUp() {
+                        stopDrag();
+                        window.removeEventListener('mousemove', onMouseMove);
+                        window.removeEventListener('mouseup', onMouseUp);
+                    }
+                    window.addEventListener('mousemove', onMouseMove);
+                    window.addEventListener('mouseup', onMouseUp);
+                };
+            }
+        }
+        
+        // --- MODE SWITCHING ---
+        function setMode(mode) {
+            const app = document.getElementById('app-container');
+            const vidStage = document.getElementById('video-stage');
+            const btnJuke = document.getElementById('btn-jukebox');
+            const btnStudy = document.getElementById('btn-study');
+            const leftPanel = document.getElementById('left-panel');
+            const notesContainer = document.getElementById('notes-container');
+
+            if (mode === 'study') {
+                app.classList.remove('mode-jukebox');
+                app.classList.add('mode-study');
+                document.body.classList.add('mode-study');
+                
+                vidStage.style.display = 'block'; 
+                
+                // Toggle Button Styles
+                btnStudy.classList.replace('text-text-sub', 'text-white');
+                btnStudy.classList.add('bg-primary', 'shadow');
+                btnJuke.classList.remove('bg-primary', 'shadow', 'text-white');
+                btnJuke.classList.add('text-text-sub');
+
+                // Restore Sidebar Layout
+                const savedWidth = localStorage.getItem('layout_sidebar_width') || '350';
+                leftPanel.style.width = savedWidth + 'px';
+                
+                // Restore Video Height (Force 16:9 sync initially)
+                // We recalculate height based on the restored width to ensure ratio is correct on load
+                const RATIO = 16 / 9;
+                const playerWidth = window.innerWidth - parseFloat(savedWidth);
+                vidStage.style.height = (playerWidth / RATIO) + 'px';
+
+                // Restore Notes Height
+                const savedNotesHeight = localStorage.getItem('layout_notes_height') || '200';
+                notesContainer.style.height = savedNotesHeight + 'px';
+
+            } else {
+                // Jukebox
+                app.classList.remove('mode-study');
+                app.classList.add('mode-jukebox');
+                document.body.classList.remove('mode-study');
+                
+                vidStage.style.display = 'none';
+                
+                btnJuke.classList.replace('text-text-sub', 'text-white');
+                btnJuke.classList.add('bg-primary', 'shadow');
+                btnStudy.classList.remove('bg-primary', 'shadow', 'text-white');
+                btnStudy.classList.add('text-text-sub');
+                
+                // Full Width Sidebar (Table)
+                leftPanel.style.width = '100%'; 
+                
+                // Re-render table
+                renderTable(); 
             }
         }
 
